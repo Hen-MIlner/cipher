@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#060b16">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -110,6 +110,28 @@ aside{width:min(300px,84vw);padding-top:calc(18px + env(safe-area-inset-top));pa
 .bar{padding:0 12px calc(12px + env(safe-area-inset-bottom))}
 .ic,#send{width:44px;height:44px}
 }
+html,body{overscroll-behavior:none}
+button{-webkit-user-select:none;user-select:none}
+#feed{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.mtools,#newTop{display:none}
+.mchip{flex:none;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:13px;color:var(--mute);white-space:nowrap}
+.mchip.on{background:#122a5e;border-color:var(--blue);color:#fff}
+@media(max-width:760px){
+.top{padding:calc(8px + env(safe-area-inset-top)) 10px 0;gap:6px}
+#newTop{display:block;order:3;flex:none;width:42px;height:42px;font-size:22px;line-height:1;background:var(--panel);border:1px solid var(--line);border-radius:50%}
+#model{order:2;font-size:14px!important;padding:10px 34px 10px 14px;text-overflow:ellipsis}
+#notes{order:4;flex:none;padding:10px 13px}
+#feed{padding:8px 14px 12px}
+#hero{padding-top:1vh}
+#hero .logo svg{width:72px;height:72px}#hero .word{font-size:22px}
+#hi{font-size:22px;margin:14px 0 4px}#hero p{margin-bottom:16px;font-size:14px}
+#chips{grid-template-columns:1fr 1fr;gap:8px}.chip{padding:13px 14px;border-radius:14px}.chip span{display:none}
+.msg{margin:16px 0;gap:10px}.ava{width:30px;height:30px;border-radius:10px}.u .bub{max-width:88%}
+.mtools{display:flex;gap:8px;overflow-x:auto;padding:0 0 10px;max-width:760px;margin:0 auto;scrollbar-width:none}
+.mtools::-webkit-scrollbar{display:none}
+.box{border-radius:24px;padding:6px 8px;gap:2px}
+#mic,#clip{width:40px;height:40px}
+}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -144,7 +166,7 @@ aside{width:min(300px,84vw);padding-top:calc(18px + env(safe-area-inset-top));pa
   </aside>
   <div id="scrim"></div>
   <main>
-    <div class="top"><button id="menu" aria-label="Open menu">☰</button><button id="notes" title="Download this chat as notes">⬇<span class="nt"> Save notes</span></button><select id="model" aria-label="Choose a model"></select></div>
+    <div class="top"><button id="menu" aria-label="Open menu">☰</button><button id="notes" title="Download this chat as notes">⬇<span class="nt"> Save notes</span></button><select id="model" aria-label="Choose a model"></select><button id="newTop" aria-label="New chat">＋</button></div>
     <div id="feed"><div class="wrap">
       <div id="hero">
         <div class="logo"><span class="m big"></span><span class="word">CIPHER</span></div>
@@ -155,6 +177,15 @@ aside{width:min(300px,84vw);padding-top:calc(18px + env(safe-area-inset-top));pa
       <div id="msgs"></div>
     </div></div>
     <div class="bar">
+      <div class="mtools" id="mtools">
+        <button class="mchip" data-mode="homework">📘 Homework</button>
+        <button class="mchip" data-mode="quiz">❓ Quiz me</button>
+        <button class="mchip" data-mode="maths">➗ Maths</button>
+        <button class="mchip" data-mode="essay">✍️ Essay</button>
+        <button class="mchip" data-mode="simple">💡 Explain simply</button>
+        <button class="mchip" data-mode="study">🎓 Study</button>
+        <button class="mchip" data-mode="code">&lt;/&gt; Code</button>
+      </div>
       <div id="pill" class="hidden"></div>
       <div class="box">
         <button class="ic" id="clip" aria-label="Attach a text file" title="Attach a text or code file">📎</button>
@@ -229,11 +260,11 @@ async function send(text){
     const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
     for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
       for(const l of ls){if(!l.startsWith('data: ')||l.includes('[DONE]'))continue;try{out.content+=JSON.parse(l.slice(6)).choices[0].delta.content||''}catch{}}
-      $('#msgs').lastChild.querySelector('.bub').innerHTML=md(out.content);$('#feed').scrollTop=1e9}
+      $('#msgs').lastChild.querySelector('.bub').innerHTML=md(out.content);stick()}
   }catch(e){out.content=out.content||'⚠️ '+e.message}
   busy=false;$('#send').disabled=false;save();render()}
 
-function setPill(){const p=$('#pill');const t=[mode&&MODE_NAME[mode]+' on',attach&&'File attached'].filter(Boolean);
+function setPill(){const p=$('#pill');const mob=matchMedia('(max-width:760px)').matches;const t=[!mob&&mode&&MODE_NAME[mode]+' on',attach&&'File attached'].filter(Boolean);
   p.classList.toggle('hidden',!t.length);p.innerHTML='<span>'+t.join(' · ')+'<button id="x" aria-label="Clear">✕</button></span>';
   if($('#x'))$('#x').onclick=()=>{mode='';attach='';setPill();syncTools()}}
 const HINT={homework:'Paste your homework question…',quiz:'Tell me a topic to be quizzed on…',maths:'Type a maths problem…',essay:'Paste your essay…',simple:'What should I explain simply?',study:'What are you studying?',code:'What do you want to build?'};
@@ -261,6 +292,14 @@ $('#timer').onclick=()=>{if(tId){clearInterval(tId);tId=null;document.title='Cip
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(!SR)$('#mic').classList.add('hidden');else{const rec=new SR();rec.lang='en-AU';rec.onresult=e=>{const t=$('#in');t.value+=(t.value?' ':'')+e.results[0][0].transcript;t.dispatchEvent(new Event('input'))};rec.onend=()=>$('#mic').style.background='';$('#mic').onclick=()=>{$('#mic').style.background='#1f4aa8';try{rec.start()}catch{}}}
 
+const stick=()=>{const f=$('#feed');if(f.scrollHeight-f.scrollTop-f.clientHeight<140)f.scrollTop=f.scrollHeight};
+$('#newTop').onclick=()=>newChat();
+$('#newChat').addEventListener('click',()=>$('#side').classList.remove('open'));
+document.querySelectorAll('aside [data-mode]').forEach(b=>b.addEventListener('click',()=>$('#side').classList.remove('open')));
+$('#in').addEventListener('focus',()=>setTimeout(()=>{$('#feed').scrollTop=1e9},300));
+let sx=0,sy=0;
+document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;const sd=$('#side');if(dx>0&&sx<28)sd.classList.add('open');else if(dx<0)sd.classList.remove('open')},{passive:true});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 if(name)start();else{$('#welcome').classList.remove('hidden');$('#nm').focus()}
 </script>
