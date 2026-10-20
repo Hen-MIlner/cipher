@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cipher</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Ccircle cx='22' cy='22' r='15' fill='none' stroke='%233d7bff' stroke-width='7' stroke-dasharray='70 24' transform='rotate(38 22 22)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -17,7 +18,7 @@ button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
 .logo svg{flex:none;filter:drop-shadow(0 0 9px #2f6bffb0)}
 .word{letter-spacing:.34em;font-weight:600}
 #app{display:flex;height:100%}
-aside{flex:none;width:268px;background:var(--side);border-right:1px solid var(--line);padding:18px 12px 14px;display:flex;flex-direction:column;gap:2px}
+aside{flex:none;overflow-y:auto;width:268px;background:var(--side);border-right:1px solid var(--line);padding:18px 12px 14px;display:flex;flex-direction:column;gap:2px}
 aside .logo{padding:4px 10px 20px}aside .word{font-size:19px}
 .nav{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:12px;padding:10px 12px;color:var(--mute);transition:background .15s,color .15s}
 .nav:hover{background:#ffffff0d;color:var(--text)}
@@ -25,7 +26,7 @@ aside .logo{padding:4px 10px 20px}aside .word{font-size:19px}
 #newChat{justify-content:center;background:linear-gradient(135deg,#3d7bff,#2149c9);color:#fff;font-weight:500;box-shadow:0 8px 24px #2b6bff3d;margin-bottom:10px}
 #newChat:hover{filter:brightness(1.1)}
 .hd{color:var(--mute);font-size:12px;margin:16px 12px 4px}
-#hist{flex:1;overflow:auto;min-height:40px}
+#hist{flex:1;overflow:auto;min-height:70px}
 #hist .nav{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .me{border-top:1px solid var(--line);padding-top:12px;margin-top:8px;display:flex;align-items:center;gap:12px}
 .av{flex:none;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2f6bff,#22d3ee);display:grid;place-items:center;font-weight:600;color:#061024}
@@ -35,7 +36,7 @@ aside .logo{padding:4px 10px 20px}aside .word{font-size:19px}
 main{flex:1;min-width:0;display:flex;flex-direction:column;background:radial-gradient(60% 45% at 50% 0%,#14357a40,transparent),radial-gradient(#ffffff0c 1px,transparent 1px);background-size:auto,28px 28px}
 .top{display:flex;align-items:center;padding:14px 20px 0;gap:10px}
 #menu{display:none;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
-#model{margin-left:auto;appearance:none;-webkit-appearance:none;background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%237b8bab' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid var(--line);border-radius:999px;padding:9px 38px 9px 16px;font-size:13px;max-width:72%}
+#model{appearance:none;-webkit-appearance:none;background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%237b8bab' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;border:1px solid var(--line);border-radius:999px;padding:9px 38px 9px 16px;font-size:13px;max-width:72%}
 #model:hover{border-color:var(--blue)}#model option{background:#0d1629}
 #feed{flex:1;overflow:auto;padding:12px 20px 20px}
 .wrap{max-width:760px;margin:0 auto}
@@ -81,6 +82,12 @@ textarea::placeholder{color:var(--mute)}
 .card input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;margin-bottom:12px}
 .card input:focus{border-color:var(--blue);outline:none}
 .go{width:100%;background:linear-gradient(135deg,#3d7bff,#2149c9);border:0;border-radius:14px;padding:14px;font-weight:600;box-shadow:0 8px 24px #2b6bff3d}
+#notes{margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:13px;color:var(--mute)}
+#notes:hover{color:var(--text);border-color:var(--blue)}
+.col{flex:1;min-width:0}
+.cp{background:none;border:0;color:var(--mute);font-size:12px;padding:2px 0;margin-top:4px}.cp:hover{color:var(--text)}
+.h{display:block;font-size:1.08em;margin-top:.7em}
+#timer{margin-top:6px;border:1px solid var(--line);justify-content:center;font-size:13px}
 #scrim{display:none;position:fixed;inset:0;background:#000b;z-index:15}
 @media(max-width:760px){aside{position:fixed;top:0;bottom:0;left:0;z-index:20;transform:translateX(-100%);transition:transform .2s}aside.open{transform:none}aside.open+#scrim{display:block}#menu{display:block}#chips{grid-template-columns:1fr}#hero{padding-top:2vh}.bar{padding:0 12px 12px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -103,14 +110,21 @@ textarea::placeholder{color:var(--mute)}
     <button class="nav" id="newChat">+ New chat</button>
     <div class="hd">Chat history</div>
     <div id="hist"></div>
+    <div class="hd">School</div>
+    <button class="nav" data-mode="homework">📘 Homework helper</button>
+    <button class="nav" data-mode="quiz">❓ Quiz me</button>
+    <button class="nav" data-mode="maths">➗ Maths step-by-step</button>
+    <button class="nav" data-mode="essay">✍️ Essay feedback</button>
+    <button class="nav" data-mode="simple">💡 Explain simply</button>
     <div class="hd">Tools</div>
     <button class="nav" data-mode="study">🎓 Study mode</button>
     <button class="nav" data-mode="code">&lt;/&gt; Code assistant</button>
+    <button class="nav" id="timer">⏱ Focus timer · 25:00</button>
     <div class="me"><div class="av" id="av"></div><div><b id="who"></b><button id="chg">Change name</button></div></div>
   </aside>
   <div id="scrim"></div>
   <main>
-    <div class="top"><button id="menu" aria-label="Open menu">☰</button><select id="model" aria-label="Choose a model"></select></div>
+    <div class="top"><button id="menu" aria-label="Open menu">☰</button><button id="notes" title="Download this chat as notes">⬇ Save notes</button><select id="model" aria-label="Choose a model"></select></div>
     <div id="feed"><div class="wrap">
       <div id="hero">
         <div class="logo"><span class="m big"></span><span class="word">CIPHER</span></div>
@@ -125,6 +139,7 @@ textarea::placeholder{color:var(--mute)}
       <div class="box">
         <button class="ic" id="clip" aria-label="Attach a text file" title="Attach a text or code file">📎</button>
         <input type="file" id="file" class="hidden" accept=".txt,.md,.csv,.json,.js,.ts,.py,.html,.css,.java,.c,.cpp,.xml,.yml,.log">
+        <button class="ic" id="mic" aria-label="Speak" title="Speak your message">🎤</button>
         <textarea id="in" rows="1" placeholder="Message Cipher…"></textarea>
         <button id="send" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
       </div>
@@ -136,8 +151,14 @@ textarea::placeholder{color:var(--mute)}
 const $=s=>document.querySelector(s);
 const LOGO=n=>`<svg width="${n}" height="${n}" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="15" fill="none" stroke="url(#cg)" stroke-width="7" stroke-dasharray="70 24" transform="rotate(38 22 22)"/></svg>`;
 document.querySelectorAll('.m').forEach(e=>e.innerHTML=LOGO(e.classList.contains('big')?104:36));
-const SUG=[['Explain a topic','Break down anything, simply','Explain how black holes form, simply.'],['Help with homework','Work through a question together','Help me with my homework. I will paste the question.'],['Write or edit','Emails, essays, captions','Help me write a short, friendly email.'],['Summarise','Boil text down to the key points','Summarise the text I paste next into 5 bullet points.']];
-const MODE_NAME={study:'Study mode',code:'Code assistant'};
+const SUG=[
+['Explain a topic','In plain words, with examples','simple','',0],
+['Homework helper','Get hints, not just answers','homework','',0],
+['Quiz me','Test yourself on any subject','quiz','Start a quiz. Ask me which subject and topic.',1],
+['Essay feedback','Paste it in, get clear tips','essay','Please give me feedback on my essay:\n\n',0],
+['Summarise notes','Turn pages into key points','study','Summarise these notes into key points:\n\n',0],
+['Maths step-by-step','Worked solutions you can follow','maths','',0]];
+const MODE_NAME={study:'Study mode',code:'Code assistant',homework:'Homework helper',quiz:'Quiz me',maths:'Maths step-by-step',essay:'Essay feedback',simple:'Explain simply'};
 let name=localStorage.getItem('cipher:name')||'',model=localStorage.getItem('cipher:model')||'',mode='',chats=[],cur=null,busy=false,attach='';
 const key=()=>'cipher:chats:'+name.toLowerCase();
 async function api(p,body){
@@ -146,7 +167,7 @@ async function api(p,body){
     if(!r.ok)throw new Error(j.error||'Request failed');return j}
   return r}
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const md=s=>esc(s).replace(/```(\w*)\n?([\s\S]*?)(```|$)/g,(_,l,c)=>`<pre><code>${c}</code></pre>`).replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>').replace(/`([^`\n]+)`/g,'<code>$1</code>');
+const md=s=>esc(s).split(/(```[\s\S]*?(?:```|$))/).map(p=>p.startsWith('```')?p.replace(/```(\w*)\n?([\s\S]*?)(```|$)/,(_,l,c)=>`<pre><code>${c}</code></pre>`):p.replace(/^#{1,3} (.+)$/gm,'<b class="h">$1</b>').replace(/^[-*] /gm,'• ').replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>').replace(/`([^`\n]+)`/g,'<code>$1</code>')).join('');
 
 function start(){
   $('#welcome').classList.add('hidden');$('#app').classList.remove('hidden');
@@ -172,7 +193,7 @@ const save=()=>localStorage.setItem(key(),JSON.stringify(chats.slice(0,40)));
 function newChat(){cur={id:Date.now(),title:'New chat',m:[]};render();$('#in').focus()}
 function render(){
   $('#hero').classList.toggle('hidden',cur.m.length>0);
-  $('#msgs').innerHTML=cur.m.map(m=>`<div class="msg ${m.role[0]}">${m.role==='user'?'':'<div class="ava">'+LOGO(22)+'</div>'}<div class="bub">${m.role==='user'?esc(m.content):(m.content?md(m.content):'<span class="dots"><i></i><i></i><i></i></span>')}</div></div>`).join('');
+  $('#msgs').innerHTML=cur.m.map((m,i)=>m.role==='user'?`<div class="msg u"><div class="bub">${esc(m.content)}</div></div>`:`<div class="msg a"><div class="ava">${LOGO(22)}</div><div class="col"><div class="bub">${m.content?md(m.content):'<span class="dots"><i></i><i></i><i></i></span>'}</div>${m.content&&!busy?`<button class="cp" data-i="${i}">Copy</button>`:''}</div></div>`).join('');
   $('#hist').innerHTML=chats.map(c=>`<button class="nav" data-id="${c.id}">${esc(c.title)}</button>`).join('');
   $('#feed').scrollTop=1e9}
 async function send(text){
@@ -188,14 +209,16 @@ async function send(text){
     const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
     for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
       for(const l of ls){if(!l.startsWith('data: ')||l.includes('[DONE]'))continue;try{out.content+=JSON.parse(l.slice(6)).choices[0].delta.content||''}catch{}}
-      $('#msgs').lastChild.lastChild.innerHTML=md(out.content);$('#feed').scrollTop=1e9}
+      $('#msgs').lastChild.querySelector('.bub').innerHTML=md(out.content);$('#feed').scrollTop=1e9}
   }catch(e){out.content=out.content||'⚠️ '+e.message}
   busy=false;$('#send').disabled=false;save();render()}
 
 function setPill(){const p=$('#pill');const t=[mode&&MODE_NAME[mode]+' on',attach&&'File attached'].filter(Boolean);
   p.classList.toggle('hidden',!t.length);p.innerHTML='<span>'+t.join(' · ')+'<button id="x" aria-label="Clear">✕</button></span>';
   if($('#x'))$('#x').onclick=()=>{mode='';attach='';setPill();syncTools()}}
-function syncTools(){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode))}
+const HINT={homework:'Paste your homework question…',quiz:'Tell me a topic to be quizzed on…',maths:'Type a maths problem…',essay:'Paste your essay…',simple:'What should I explain simply?',study:'What are you studying?',code:'What do you want to build?'};
+function syncTools(){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));$('#in').placeholder=HINT[mode]||'Message Cipher…'}
+function useChip(i){const[,,m,pre,auto]=SUG[i];mode=m||'';syncTools();setPill();if(auto)send(pre);else{$('#in').value=pre||'';$('#in').focus()}}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=mode===b.dataset.mode?'':b.dataset.mode;syncTools();setPill();$('#in').focus()});
 $('#clip').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
@@ -205,9 +228,18 @@ $('#send').onclick=()=>send($('#in').value);
 $('#in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send($('#in').value)}};
 $('#in').oninput=e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'};
 $('#newChat').onclick=()=>newChat();
-$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(b)send(SUG[b.dataset.i][2])};
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(b)useChip(b.dataset.i)};
 $('#hist').onclick=e=>{const b=e.target.closest('[data-id]');if(b){cur=chats.find(c=>c.id==b.dataset.id);render();$('#side').classList.remove('open')}};
 $('#menu').onclick=()=>$('#side').classList.toggle('open');$('#scrim').onclick=()=>$('#side').classList.remove('open');
+
+$('#msgs').onclick=e=>{const b=e.target.closest('.cp');if(b){navigator.clipboard.writeText(cur.m[b.dataset.i].content);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)}};
+$('#notes').onclick=()=>{if(!cur.m.length)return;const t=cur.m.map(m=>(m.role==='user'?'## Question\n':'## Answer\n')+m.content).join('\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['# '+cur.title+'\n\n'+t],{type:'text/markdown'}));a.download=(cur.title.replace(/[^\w ]/g,'').trim()||'notes')+'.md';a.click()};
+let tEnd=0,tId=null;const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+$('#timer').onclick=()=>{if(tId){clearInterval(tId);tId=null;document.title='Cipher';$('#timer').textContent='⏱ Focus timer · 25:00';return}
+  tEnd=Date.now()+1500000;tId=setInterval(()=>{const l=Math.max(0,Math.round((tEnd-Date.now())/1000));$('#timer').textContent='⏱ Focus · '+fmt(l)+' (tap to stop)';document.title=fmt(l)+' · Cipher';
+    if(!l){clearInterval(tId);tId=null;document.title='Cipher';$('#timer').textContent='✅ Break time! Tap to restart';alert('Focus session done. Take a 5 minute break!')}},1000)};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR)$('#mic').classList.add('hidden');else{const rec=new SR();rec.lang='en-AU';rec.onresult=e=>{const t=$('#in');t.value+=(t.value?' ':'')+e.results[0][0].transcript;t.dispatchEvent(new Event('input'))};rec.onend=()=>$('#mic').style.background='';$('#mic').onclick=()=>{$('#mic').style.background='#1f4aa8';try{rec.start()}catch{}}}
 
 if(name)start();else{$('#welcome').classList.remove('hidden');$('#nm').focus()}
 </script>
