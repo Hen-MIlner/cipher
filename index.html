@@ -211,7 +211,7 @@ const SUG=[
 ['Maths step-by-step','Worked solutions you can follow','maths','',0]];
 const MODE_NAME={study:'Study mode',code:'Code assistant',homework:'Homework helper',quiz:'Quiz me',maths:'Maths step-by-step',essay:'Essay feedback',simple:'Explain simply'};
 let name=localStorage.getItem('cipher:name')||'',model=localStorage.getItem('cipher:model')||'',mode='',chats=[],cur=null,busy=false,attach='';
-const key=()=>'cipher:chats:'+name.toLowerCase();
+const key=()=>'cipher:chats'; // one shared history per browser, so changing your name never hides it
 async function api(p,body){
   const r=await fetch(p,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
   if(!r.ok||!body){const t=await r.text();let j;try{j=JSON.parse(t)}catch{throw new Error("Can't reach the Cipher API. Make sure api/chat.js is in your GitHub repo (inside an api folder), then redeploy on Vercel.")}
@@ -223,6 +223,8 @@ const md=s=>esc(s).split(/(```[\s\S]*?(?:```|$))/).map(p=>p.startsWith('```')?p.
 function start(){
   $('#welcome').classList.add('hidden');$('#app').classList.remove('hidden');
   chats=JSON.parse(localStorage.getItem(key())||'[]');
+  Object.keys(localStorage).filter(k=>k.startsWith('cipher:chats:')).forEach(k=>{try{JSON.parse(localStorage.getItem(k)).forEach(c=>{if(!chats.some(x=>x.id===c.id))chats.push(c)})}catch{}localStorage.removeItem(k)});
+  chats.sort((a,b)=>b.id-a.id);save();
   $('#who').textContent=name;$('#av').textContent=name[0].toUpperCase();
   $('#hi').textContent=`Hi ${name}, what's on your mind?`;
   $('#chips').innerHTML=SUG.map((s,i)=>`<button class="chip" data-i="${i}"><b>${s[0]}</b><span>${s[1]}</span></button>`).join('');
