@@ -88,6 +88,14 @@ textarea::placeholder{color:var(--mute)}
 .card p{color:var(--mute);margin:0 0 20px}
 .card input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;margin-bottom:12px}
 .card input:focus{border-color:var(--blue);outline:none}
+.card p.fine{font-size:12px;margin:14px 0 0}.fine a{color:#6ea2ff}
+#welcome{display:flex;overflow-y:auto}.card{margin:auto}
+.card .agree{max-height:150px;overflow:auto;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:4px 0 12px}
+.card .agree b{display:block;margin-bottom:6px;font-size:13px}
+.card .agree p{font-size:13px;margin:0 0 8px;line-height:1.5}
+.tick{display:flex;gap:10px;align-items:flex-start;text-align:left;font-size:13px;color:var(--mute);margin-bottom:14px}
+.card .tick input{width:20px;height:20px;flex:none;margin:1px 0 0;padding:0;border:0;background:none;accent-color:#3d7bff}
+.go:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
 .go{width:100%;background:linear-gradient(135deg,#3d7bff,#2149c9);border:0;border-radius:14px;padding:14px;font-weight:600;box-shadow:0 8px 24px #2b6bff3d}
 #notes{margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-size:13px;color:var(--mute)}
 #notes:hover{color:var(--text);border-color:var(--blue)}
@@ -143,7 +151,12 @@ button{-webkit-user-select:none;user-select:none}
   <h2>Welcome</h2>
   <p>What should I call you?</p>
   <input id="nm" type="text" maxlength="24" placeholder="Your name" autocomplete="given-name" required>
-  <button class="go">Start chatting</button>
+  <div class="agree"><b>Adult supervision and project responsibility</b>
+    <p>Cipher is an independently developed software project created by a young developer with adult supervision and support.</p>
+    <p>An adult supervisor assists with account administration, hosting, security and other operational responsibilities where appropriate. This arrangement does not remove any responsibilities that apply to the project or its operators under applicable law.</p>
+    <p>Users should use Cipher responsibly and should not rely on its outputs as a substitute for professional advice where appropriate.</p></div>
+  <label class="tick"><input type="checkbox" id="ok"><span>I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the notice above. I am 14 or older, and if I am under 18 I have a parent or guardian's permission.</span></label>
+  <button class="go" id="wbtn" disabled>Start chatting</button>
 </form></div>
 
 <div id="app" class="hidden">
@@ -162,6 +175,7 @@ button{-webkit-user-select:none;user-select:none}
     <button class="nav" data-mode="study">🎓 Study mode</button>
     <button class="nav" data-mode="code">&lt;/&gt; Code assistant</button>
     <button class="nav" id="timer">⏱ Focus timer · 25:00</button>
+    <div class="fine" style="font-size:12px;padding:6px 12px;color:var(--mute)"><a href="/terms.html" style="color:inherit">Terms</a> · <a href="/privacy.html" style="color:inherit">Privacy</a></div>
     <div class="me"><div class="av" id="av"></div><div><b id="who"></b><button id="chg">Change name</button></div></div>
   </aside>
   <div id="scrim"></div>
@@ -211,6 +225,7 @@ const SUG=[
 ['Maths step-by-step','Worked solutions you can follow','maths','',0]];
 const MODE_NAME={study:'Study mode',code:'Code assistant',homework:'Homework helper',quiz:'Quiz me',maths:'Maths step-by-step',essay:'Essay feedback',simple:'Explain simply'};
 let name=localStorage.getItem('cipher:name')||'',model=localStorage.getItem('cipher:model')||'',mode='',chats=[],cur=null,busy=false,attach='';
+const TV='2026-10-21',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
 const key=()=>'cipher:chats'; // one shared history per browser, so changing your name never hides it
 async function api(p,body){
   const r=await fetch(p,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
@@ -229,7 +244,8 @@ function start(){
   $('#hi').textContent=`Hi ${name}, what's on your mind?`;
   $('#chips').innerHTML=SUG.map((s,i)=>`<button class="chip" data-i="${i}"><b>${s[0]}</b><span>${s[1]}</span></button>`).join('');
   loadModels();newChat()}
-$('#wf').onsubmit=e=>{e.preventDefault();name=$('#nm').value.trim();if(!name)return;localStorage.setItem('cipher:name',name);start()};
+$('#ok').onchange=()=>{$('#wbtn').disabled=!$('#ok').checked};
+$('#wf').onsubmit=e=>{e.preventDefault();name=$('#nm').value.trim();if(!name||!$('#ok').checked)return;localStorage.setItem('cipher:name',name);localStorage.setItem('cipher:agreed',TV);start()};
 $('#chg').onclick=()=>{localStorage.removeItem('cipher:name');location.reload()};
 
 async function loadModels(){
@@ -250,14 +266,14 @@ function render(){
   $('#hist').innerHTML=chats.map(c=>`<button class="nav" data-id="${c.id}">${esc(c.title)}</button>`).join('');
   $('#feed').scrollTop=1e9}
 async function send(text){
-  text=text.trim();if((!text&&!attach)||busy)return;
+  text=text.trim();if((!text&&!attach)||busy)return;if(!agreed()){location.reload();return}
   if(attach){text=(text||'Please look at this file.')+'\n\n--- attached file ---\n'+attach;attach='';setPill()}
   busy=true;$('#send').disabled=true;$('#in').value='';$('#in').style.height='auto';
   cur.m.push({role:'user',content:text});
   if(cur.m.length===1){cur.title=text.slice(0,40);chats.unshift(cur)}
   cur.m.push({role:'assistant',content:''});render();const out=cur.m[cur.m.length-1];
   try{
-    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,model,name,messages:cur.m.slice(0,-1)})});
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,model,name,agreed:agreed(),messages:cur.m.slice(0,-1)})});
     if(!r.ok){const t=await r.text();let m;try{m=JSON.parse(t).error}catch{m="Can't reach the Cipher API. Make sure api/chat.js is in your GitHub repo (inside an api folder), then redeploy on Vercel."}throw new Error(m)}
     const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
     for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
@@ -303,7 +319,7 @@ let sx=0,sy=0;
 document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;const sd=$('#side');if(dx>0&&sx<28)sd.classList.add('open');else if(dx<0)sd.classList.remove('open')},{passive:true});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
-if(name)start();else{$('#welcome').classList.remove('hidden');$('#nm').focus()}
+if(name&&agreed())start();else{$('#nm').value=name;$('#ok').checked=agreed();$('#wbtn').disabled=!$('#ok').checked;$('#welcome').classList.remove('hidden');$('#nm').focus()}
 </script>
 </body>
 </html>
