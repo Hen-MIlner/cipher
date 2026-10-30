@@ -140,6 +140,40 @@ button{-webkit-user-select:none;user-select:none}
 .box{border-radius:24px;padding:6px 8px;gap:2px}
 #mic,#clip{width:40px;height:40px}
 }
+.a .bub{white-space:normal;overflow-wrap:anywhere}
+.a .bub p{margin:0 0 .8em}.a .bub p:last-child{margin-bottom:0}
+.a .bub h1,.a .bub h2,.a .bub h3,.a .bub h4{margin:1.1em 0 .4em;line-height:1.3;font-weight:600}
+.a .bub h1{font-size:1.3em}.a .bub h2{font-size:1.18em}.a .bub h3,.a .bub h4{font-size:1.05em}
+.a .bub ul,.a .bub ol{margin:0 0 .8em;padding-left:1.4em}.a .bub li{margin:.25em 0}
+.a .bub blockquote{margin:0 0 .8em;padding:2px 0 2px 14px;border-left:3px solid var(--blue);color:var(--mute)}
+.a .bub a{color:#6ea2ff}.a .bub hr{border:0;border-top:1px solid var(--line);margin:1em 0}
+.bub code.inline{background:#14213d;border-radius:6px;padding:1px 6px;color:var(--cyan)}
+.tw{overflow-x:auto;margin:0 0 .8em}.a .bub table{border-collapse:collapse;font-size:14px}
+.a .bub th,.a .bub td{border:1px solid var(--line);padding:6px 11px;text-align:left}.a .bub th{background:var(--panel)}
+.cb{margin:10px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#050a14}
+.cbh{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#0b1428;font-size:12px;color:var(--mute)}
+.cbh .l{margin-right:auto}
+.cbh button{background:none;border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:12px;color:var(--mute)}
+.cbh button:hover{color:var(--text);border-color:var(--blue)}
+.cb pre{margin:0;border:0;border-radius:0}
+.acts{display:flex;gap:14px}
+.ucol{max-width:80%;display:flex;flex-direction:column;align-items:flex-end}
+.u .ucol .bub{max-width:100%}
+.msg.u.editing{justify-content:stretch}.msg.u.editing .ucol{width:100%;max-width:100%;align-items:stretch}
+.editbox textarea{width:100%;display:block;background:var(--bg);border:1px solid var(--blue);border-radius:14px;padding:10px 12px;min-height:80px;max-height:260px}
+.er{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:8px}
+.go.small{width:auto;padding:9px 16px;font-size:14px}
+#panel{display:none;flex:0 0 46%;min-width:0;flex-direction:column;background:var(--side);border-left:1px solid var(--line)}
+#panel.open{display:flex}
+.ph{display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));border-bottom:1px solid var(--line);overflow-x:auto}
+.ph .sp{flex:1}
+#pf{flex:1;border:0;background:#fff;width:100%}
+#pc{flex:1;margin:0;border:0;border-radius:0;overflow:auto;min-height:0}
+#memBox{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:20px;z-index:40}
+.mrow{display:flex;gap:10px;align-items:center;text-align:left;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.mrow span{flex:1}.mrow button{background:none;border:0;color:var(--mute);padding:4px 8px}
+#memList{max-height:50vh;overflow:auto;margin-bottom:6px}
+@media(max-width:760px){#panel.open{position:fixed;inset:0;z-index:25;border-left:0}.ucol{max-width:88%}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -175,6 +209,7 @@ button{-webkit-user-select:none;user-select:none}
     <button class="nav" data-mode="study">🎓 Study mode</button>
     <button class="nav" data-mode="code">&lt;/&gt; Code assistant</button>
     <button class="nav" id="timer">⏱ Focus timer · 25:00</button>
+    <button class="nav" id="memBtn">🧠 Memory</button>
     <div class="fine" style="font-size:12px;padding:6px 12px;color:var(--mute)"><a href="/terms.html" style="color:inherit">Terms</a> · <a href="/privacy.html" style="color:inherit">Privacy</a></div>
     <div class="me"><div class="av" id="av"></div><div><b id="who"></b><button id="chg">Change name</button></div></div>
   </aside>
@@ -210,7 +245,23 @@ button{-webkit-user-select:none;user-select:none}
       </div>
     </div>
   </main>
+  <section id="panel" aria-label="Preview">
+    <div class="ph"><b>Preview</b><span class="sp"></span>
+      <button class="mchip on" id="tp">Preview</button><button class="mchip" id="tc">Code</button>
+      <button class="mchip" id="pcp">Copy</button><button class="mchip" id="pdl">Download</button>
+      <button class="mchip" id="px" aria-label="Close preview">✕</button></div>
+    <iframe id="pf" sandbox="allow-scripts allow-forms allow-modals allow-popups" title="Preview"></iframe>
+    <pre id="pc" class="hidden"></pre>
+  </section>
 </div>
+
+<div id="memBox" class="hidden"><div class="card">
+  <h2>Memory</h2>
+  <p>Lasting things Cipher remembers about you. Saved on this device only.</p>
+  <div id="memList"></div>
+  <button class="go" id="memDone" style="margin-top:14px">Done</button>
+  <button class="cp" id="memClear" style="margin-top:10px">Clear all</button>
+</div></div>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -233,7 +284,29 @@ async function api(p,body){
     if(!r.ok)throw new Error(j.error||'Request failed');return j}
   return r}
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const md=s=>esc(s).split(/(```[\s\S]*?(?:```|$))/).map(p=>p.startsWith('```')?p.replace(/```(\w*)\n?([\s\S]*?)(```|$)/,(_,l,c)=>`<pre><code>${c}</code></pre>`):p.replace(/^#{1,3} (.+)$/gm,'<b class="h">$1</b>').replace(/^[-*] /gm,'• ').replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>').replace(/`([^`\n]+)`/g,'<code>$1</code>')).join('');
+const inl=t=>{t=esc(t);const cs=[];t=t.replace(/`([^`\n]+)`/g,(m,c)=>{cs.push(c);return '\u0000'+(cs.length-1)+'\u0000'});
+  t=t.replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*\w])\*([^*\n]+)\*(?!\w)/g,'$1<i>$2</i>');
+  t=t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(m,a,u)=>'<a href="'+u.replace(/"/g,'%22')+'" target="_blank" rel="noopener noreferrer">'+a+'</a>');
+  return t.replace(/\u0000(\d+)\u0000/g,(m,i)=>'<code class="inline">'+cs[i]+'</code>')};
+function blk(text){const L=text.split('\n');let o='',i=0,p=[];const fl=()=>{if(p.length){o+='<p>'+inl(p.join('\n')).replace(/\n/g,'<br>')+'</p>';p=[]}};
+  while(i<L.length){const l=L[i];let m;
+    if(!l.trim()){fl();i++;continue}
+    if((m=l.match(/^(#{1,4})\s+(.*)$/))){fl();o+=`<h${m[1].length}>${inl(m[2])}</h${m[1].length}>`;i++;continue}
+    if(/^\s*([-*_])\1\1+\s*$/.test(l)){fl();o+='<hr>';i++;continue}
+    if(/^>\s?/.test(l)){fl();const q=[];while(i<L.length&&/^>\s?/.test(L[i])){q.push(L[i].replace(/^>\s?/,''));i++}o+='<blockquote>'+inl(q.join('\n')).replace(/\n/g,'<br>')+'</blockquote>';continue}
+    if(/^\s*[-*+]\s+/.test(l)){fl();o+='<ul>';while(i<L.length&&/^\s*[-*+]\s+/.test(L[i])){o+='<li>'+inl(L[i].replace(/^\s*[-*+]\s+/,''))+'</li>';i++}o+='</ul>';continue}
+    if(/^\s*\d+[.)]\s+/.test(l)){fl();o+='<ol>';while(i<L.length&&/^\s*\d+[.)]\s+/.test(L[i])){o+='<li>'+inl(L[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>';i++}o+='</ol>';continue}
+    if(/^\|.*\|\s*$/.test(l)&&i+1<L.length&&/^\|?\s*:?-{2,}/.test(L[i+1])){fl();const cells=r=>r.replace(/^\||\|\s*$/g,'').split('|').map(c=>c.trim());
+      const h=cells(l);i+=2;let t="<div class='tw'><table><thead><tr>"+h.map(x=>'<th>'+inl(x)+'</th>').join('')+'</tr></thead><tbody>';
+      while(i<L.length&&/^\|.*\|\s*$/.test(L[i])){t+='<tr>'+cells(L[i]).map(c=>'<td>'+inl(c)+'</td>').join('')+'</tr>';i++}o+=t+'</tbody></table></div>';continue}
+    p.push(l);i++}
+  fl();return o}
+function md(text){let o='',last=0,m;const re=/```([\w+-]*)[ \t]*\n?([\s\S]*?)(```|$)/g;
+  while((m=re.exec(text))!==null){if(m.index===re.lastIndex)re.lastIndex++;
+    o+=blk(text.slice(last,m.index));const lang=(m[1]||'').toLowerCase(),code=m[2].replace(/\n$/,''),can=(lang==='html'||lang==='svg')&&m[3]==='```';
+    o+='<div class="cb"><div class="cbh"><span class="l">'+(esc(lang)||'code')+'</span>'+(can?'<button data-cb="preview">Open preview</button>':'')+'<button data-cb="copy">Copy</button></div><pre><code>'+esc(code)+'</code></pre></div>';
+    last=m.index+m[0].length;if(m[3]!=='```')break}
+  return o+blk(text.slice(last))}
 
 function start(){
   $('#welcome').classList.add('hidden');$('#app').classList.remove('hidden');
@@ -260,27 +333,51 @@ function showErr(t){cur.m.push({role:'assistant',content:'⚠️ '+t});render()}
 
 const save=()=>localStorage.setItem(key(),JSON.stringify(chats.slice(0,40)));
 function newChat(){cur={id:Date.now(),title:'New chat',m:[]};render();$('#in').focus()}
+const getMem=()=>{try{return JSON.parse(localStorage.getItem('cipher:memory')||'[]')}catch{return[]}};
+const setMem=a=>localStorage.setItem('cipher:memory',JSON.stringify(a.slice(-40)));
+const stripMemory=t=>t.replace(/<memory>[\s\S]*?<\/memory>/g,'').replace(/<memory>[\s\S]*$/,'').replace(/<\/?(?:m(?:e(?:m(?:o(?:r(?:y)?)?)?)?)?)?$/,'').trimEnd();
+function harvest(t){const f=[...t.matchAll(/<memory>([\s\S]*?)<\/memory>/g)].map(m=>m[1].trim()).filter(x=>x&&x.length<200);if(!f.length)return;
+  const mem=getMem();f.forEach(x=>{if(!mem.some(y=>y.toLowerCase()===x.toLowerCase()))mem.push(x)});setMem(mem)}
+const ARROW=$('#send').innerHTML,STOP='<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>';
+let ctl=null;
+function setBusy(b){busy=b;$('#send').innerHTML=b?STOP:ARROW;$('#send').setAttribute('aria-label',b?'Stop':'Send')}
 function render(){
   $('#hero').classList.toggle('hidden',cur.m.length>0);
-  $('#msgs').innerHTML=cur.m.map((m,i)=>m.role==='user'?`<div class="msg u"><div class="bub">${esc(m.content)}</div></div>`:`<div class="msg a"><div class="ava">${LOGO(22)}</div><div class="col"><div class="bub">${m.content?md(m.content):'<span class="dots"><i></i><i></i><i></i></span>'}</div>${m.content&&!busy?`<button class="cp" data-i="${i}">Copy</button>`:''}</div></div>`).join('');
+  const last=cur.m.length-1;
+  $('#msgs').innerHTML=cur.m.map((m,i)=>m.role==='user'
+    ?`<div class="msg u"><div class="ucol"><div class="bub">${esc(m.content)}</div>${busy?'':`<button class="cp" data-edit="${i}">Edit</button>`}</div></div>`
+    :`<div class="msg a"><div class="ava">${LOGO(22)}</div><div class="col"><div class="bub">${m.content?md(stripMemory(m.content)):'<span class="dots"><i></i><i></i><i></i></span>'}</div>${m.content&&!busy?`<div class="acts"><button class="cp" data-i="${i}">Copy</button>${i===last?'<button class="cp" data-regen="1">Regenerate</button>':''}</div>`:''}</div></div>`).join('');
   $('#hist').innerHTML=chats.map(c=>`<button class="nav" data-id="${c.id}">${esc(c.title)}</button>`).join('');
   $('#feed').scrollTop=1e9}
 async function send(text){
   text=text.trim();if((!text&&!attach)||busy)return;if(!agreed()){location.reload();return}
   if(attach){text=(text||'Please look at this file.')+'\n\n--- attached file ---\n'+attach;attach='';setPill()}
-  busy=true;$('#send').disabled=true;$('#in').value='';$('#in').style.height='auto';
+  $('#in').value='';$('#in').style.height='auto';
   cur.m.push({role:'user',content:text});
   if(cur.m.length===1){cur.title=text.slice(0,40);chats.unshift(cur)}
-  cur.m.push({role:'assistant',content:''});render();const out=cur.m[cur.m.length-1];
+  run()}
+async function run(){
+  setBusy(true);cur.m.push({role:'assistant',content:''});render();const out=cur.m[cur.m.length-1];
+  ctl=new AbortController();
   try{
-    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,model,name,agreed:agreed(),messages:cur.m.slice(0,-1)})});
+    const r=await fetch('/api/chat',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,model,name,agreed:agreed(),memory:getMem(),messages:cur.m.slice(0,-1).filter(m=>!m.content.startsWith('⚠️'))})});
     if(!r.ok){const t=await r.text();let m;try{m=JSON.parse(t).error}catch{m="Can't reach the Cipher API. Make sure api/chat.js is in your GitHub repo (inside an api folder), then redeploy on Vercel."}throw new Error(m)}
     const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
     for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
       for(const l of ls){if(!l.startsWith('data: ')||l.includes('[DONE]'))continue;try{out.content+=JSON.parse(l.slice(6)).choices[0].delta.content||''}catch{}}
-      $('#msgs').lastChild.querySelector('.bub').innerHTML=md(out.content);stick()}
-  }catch(e){out.content=out.content||'⚠️ '+e.message}
-  busy=false;$('#send').disabled=false;save();render()}
+      $('#msgs').lastChild.querySelector('.bub').innerHTML=md(stripMemory(out.content));stick()}
+  }catch(e){if(e.name!=='AbortError')out.content=out.content||'⚠️ '+e.message}
+  ctl=null;setBusy(false);
+  const ok=out.content&&!out.content.startsWith('⚠️');
+  if(!out.content)cur.m.pop();else if(ok)harvest(out.content);
+  save();render();
+  if(ok&&!matchMedia('(max-width:760px)').matches){const m=stripMemory(out.content).match(/```html[ \t]*\n([\s\S]*?)```/i);if(m&&m[1].split('\n').length>=8)openPanel(m[1].replace(/\n$/,''))}}
+function startEdit(i){
+  const el=$('#msgs').children[i];el.classList.add('editing');
+  el.querySelector('.ucol').innerHTML='<div class="editbox"><textarea id="ed"></textarea><div class="er"><button class="cp" id="edx">Cancel</button><button class="go small" id="eds">Save and resend</button></div></div>';
+  const ta=$('#ed');ta.value=cur.m[i].content;ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,260)+'px';ta.focus();
+  $('#edx').onclick=render;
+  $('#eds').onclick=()=>{const v=ta.value.trim();if(!v)return;cur.m=cur.m.slice(0,i);cur.m.push({role:'user',content:v});if(i===0)cur.title=v.slice(0,40);save();run()}}
 
 function setPill(){const p=$('#pill');const mob=matchMedia('(max-width:760px)').matches;const t=[!mob&&mode&&MODE_NAME[mode]+' on',attach&&'File attached'].filter(Boolean);
   p.classList.toggle('hidden',!t.length);p.innerHTML='<span>'+t.join(' · ')+'<button id="x" aria-label="Clear">✕</button></span>';
@@ -293,7 +390,7 @@ $('#clip').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;
   if(f.size>100000){showErr('That file is too big. Keep it under 100 KB.');return}
   const r=new FileReader();r.onload=()=>{attach=`(${f.name})\n`+r.result;setPill()};r.readAsText(f);e.target.value=''};
-$('#send').onclick=()=>send($('#in').value);
+$('#send').onclick=()=>{if(busy){ctl&&ctl.abort()}else send($('#in').value)};
 $('#in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!matchMedia('(pointer:coarse)').matches){e.preventDefault();send($('#in').value)}};
 $('#in').oninput=e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'};
 $('#newChat').onclick=()=>newChat();
@@ -301,7 +398,13 @@ $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(b)useChip(b.dataset
 $('#hist').onclick=e=>{const b=e.target.closest('[data-id]');if(b){cur=chats.find(c=>c.id==b.dataset.id);render();$('#side').classList.remove('open')}};
 $('#menu').onclick=()=>$('#side').classList.toggle('open');$('#scrim').onclick=()=>$('#side').classList.remove('open');
 
-$('#msgs').onclick=e=>{const b=e.target.closest('.cp');if(b){navigator.clipboard.writeText(cur.m[b.dataset.i].content);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)}};
+const flash=(b,t)=>{const o=b.textContent;b.textContent=t;setTimeout(()=>b.textContent=o,1200)};
+$('#msgs').onclick=e=>{
+  const cb=e.target.closest('[data-cb]');
+  if(cb){const code=cb.closest('.cb').querySelector('code').textContent;if(cb.dataset.cb==='copy'){navigator.clipboard.writeText(code);flash(cb,'Copied')}else openPanel(code);return}
+  const ed=e.target.closest('[data-edit]');if(ed&&!busy){startEdit(+ed.dataset.edit);return}
+  if(e.target.closest('[data-regen]')&&!busy){cur.m.pop();run();return}
+  const b=e.target.closest('.cp[data-i]');if(b){navigator.clipboard.writeText(stripMemory(cur.m[b.dataset.i].content));flash(b,'Copied')}};
 $('#notes').onclick=()=>{if(!cur.m.length)return;const t=cur.m.map(m=>(m.role==='user'?'## Question\n':'## Answer\n')+m.content).join('\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['# '+cur.title+'\n\n'+t],{type:'text/markdown'}));a.download=(cur.title.replace(/[^\w ]/g,'').trim()||'notes')+'.md';a.click()};
 let tEnd=0,tId=null;const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 $('#timer').onclick=()=>{if(tId){clearInterval(tId);tId=null;document.title='Cipher';$('#timer').textContent='⏱ Focus timer · 25:00';return}
@@ -318,6 +421,18 @@ $('#in').addEventListener('focus',()=>setTimeout(()=>{$('#feed').scrollTop=1e9},
 let sx=0,sy=0;
 document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;const sd=$('#side');if(dx>0&&sx<28)sd.classList.add('open');else if(dx<0)sd.classList.remove('open')},{passive:true});
+let art='';
+function tab(t){$('#pf').classList.toggle('hidden',t!=='p');$('#pc').classList.toggle('hidden',t!=='c');$('#tp').classList.toggle('on',t==='p');$('#tc').classList.toggle('on',t==='c')}
+function openPanel(code){art=code;$('#pf').srcdoc=code;$('#pc').textContent=code;tab('p');$('#panel').classList.add('open')}
+$('#tp').onclick=()=>tab('p');$('#tc').onclick=()=>tab('c');
+$('#px').onclick=()=>{$('#panel').classList.remove('open');$('#pf').srcdoc=''};
+$('#pcp').onclick=e=>{navigator.clipboard.writeText(art);flash(e.currentTarget,'Copied')};
+$('#pdl').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([art],{type:'text/html'}));a.download='cipher-page.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+function showMem(){const m=getMem();$('#memList').innerHTML=m.length?m.map((f,i)=>`<div class="mrow"><span>${esc(f)}</span><button data-d="${i}" aria-label="Delete">✕</button></div>`).join(''):'<p class="fine">Nothing saved yet. Tell Cipher about yourself and it will remember lasting things like your name or what you are working on.</p>'}
+$('#memBtn').onclick=()=>{showMem();$('#memBox').classList.remove('hidden');$('#side').classList.remove('open')};
+$('#memDone').onclick=()=>$('#memBox').classList.add('hidden');
+$('#memClear').onclick=()=>{setMem([]);showMem()};
+$('#memBox').onclick=e=>{if(e.target.id==='memBox')$('#memBox').classList.add('hidden');const d=e.target.closest('[data-d]');if(d){const a=getMem();a.splice(+d.dataset.d,1);setMem(a);showMem()}};
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 if(name&&agreed())start();else{$('#nm').value=name;$('#ok').checked=agreed();$('#wbtn').disabled=!$('#ok').checked;$('#welcome').classList.remove('hidden');$('#nm').focus()}
 </script>
