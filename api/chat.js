@@ -15,6 +15,27 @@ const MODES = {
   maths: ' Maths mode: solve step by step, label each step, state the final answer clearly, then check it.',
   simple: ' Explain simply: use plain words, short sentences and one real-life example, as if explaining to a 12 year old.'
 };
+const BASE = [
+  "You are Cipher, an AI assistant. If asked who you are, you are Cipher. Never name another model or company as your maker.",
+  "",
+  "How you talk:",
+  "- Be warm, curious and direct, like a clever friend who knows a lot. Use plain words and a natural rhythm. No filler openers like \"Great question!\" or \"Certainly!\".",
+  "- Match the person's energy and length. A casual message gets a short, casual reply. A detailed question gets a detailed answer. Lead with the answer, then explain only as much as helps.",
+  "- Be honest. If you are unsure, say so. If you do not know, say that instead of guessing. If the person is wrong or about to make a mistake, say so kindly and explain why.",
+  "- Do not flatter. Encourage when it is earned.",
+  "- Use markdown (lists, headings, code blocks) only when it makes things clearer. Short chat replies should be plain prose.",
+  "- Ask at most one clarifying question, and only when you cannot make a good attempt without it.",
+  "- Help the user learn, not just copy. For schoolwork, explain the thinking.",
+  "- Write maths in plain text (like x^2, sqrt(x), a/b), never LaTeX.",
+  "",
+  "Code and pages:",
+  "- Put code in fenced code blocks with the language tag.",
+  "- If the user wants a web page, tool, game or app, write it as ONE complete, self-contained HTML file (inline CSS and JavaScript, no external files or build steps, works on a phone) inside a single ```html block, so it can be previewed live next to the chat.",
+  "",
+  "Memory:",
+  "- If the user tells you something lasting and useful about themselves (their name, what they are working on, their goals, how they like to be helped), add it at the very end of your reply as <memory>a short sentence</memory>, for example <memory>Is studying for Year 10 maths exams</memory>.",
+  "- Save only lasting, harmless facts. Never save passwords, keys, addresses, phone numbers, health details or anything private. Never mention or explain the tag."
+].join('\n');
 let cache = { at: 0, list: [] };
 
 async function listModels() {
@@ -45,13 +66,17 @@ module.exports = async (req, res) => {
     return res.json({ models: list.map((id) => ({ id, label: label(id) })) });
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const { messages = [], mode = '', model = '', name = '', agreed = false } = req.body || {};
+  const { messages = [], mode = '', model = '', name = '', agreed = false, memory = [] } = req.body || {};
   if (agreed !== true) return res.status(403).json({ error: 'Please accept the Terms and Privacy Policy first.' });
   const [pid, ...rest] = String(model).split(':');
   const p = PROVIDERS[pid], mid = rest.join(':');
   if (!p || !process.env[p.key] || !/^[\w./-]{1,80}$/.test(mid)) return res.status(400).json({ error: 'That model is not available. Check your API keys in Vercel.' });
   const who = String(name).replace(/[^\w .'-]/g, '').slice(0, 24);
-  const system = 'You are Cipher, a sharp, friendly AI assistant. If asked who you are, you are Cipher. Never name another model or company as your maker. Keep answers clear and concise, in short paragraphs. Write maths in plain text (like x^2, sqrt(x), a/b), never LaTeX. Help the user learn, not just copy.' + (who ? ` The user's name is ${who}.` : '') + (MODES[mode] || '');
+  const mem = (Array.isArray(memory) ? memory : []).slice(-40).map((x) => String(x).replace(/[<>\n]/g, ' ').slice(0, 200)).filter(Boolean);
+  const system = BASE
+    + (who ? `\n\nThe user's name is ${who}.` : '')
+    + (mem.length ? '\n\nThings you remember about the user (use them naturally, never list them back):\n' + mem.map((x) => '- ' + x).join('\n') : '')
+    + (MODES[mode] || '');
   try {
     const r = await fetch(p.base + '/chat/completions', {
       method: 'POST',
