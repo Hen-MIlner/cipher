@@ -3,12 +3,14 @@
 
 const UPSTREAM = 'https://api.deepseek.com/chat/completions'; // fixed address: the key can never be sent anywhere else
 
-// The only models the server will accept. The browser asks for this list (GET /api/chat).
-const MODELS = {
-  'deepseek-chat': 'DeepSeek Chat',
-  'deepseek-reasoner': 'DeepSeek Reasoner',
-};
-const MODES = ['chat', 'study', 'code'];
+// The only models the server will accept. The page asks for this list (GET /api/chat).
+const MODEL_LIST = [
+  { id: 'deepseek-chat', label: 'DeepSeek Chat' },
+  { id: 'deepseek-reasoner', label: 'DeepSeek Reasoner' },
+];
+const MODELS = Object.fromEntries(MODEL_LIST.map((m) => [m.id, m.label]));
+// '' = no mode picked. The other names match the buttons in the sidebar.
+const MODES = ['', 'study', 'code', 'homework', 'quiz', 'maths', 'essay', 'simple'];
 
 const LIMITS = {
   maxContentLength: 400000,   // bytes, checked before parsing
@@ -62,6 +64,7 @@ function buildSystem({ name, mode, memory }) {
 How you talk:
 - Lead with the answer. Sound like a thoughtful person, not a manual. No filler openings like "Great question!".
 - Match the length to the question: a sentence or two for simple things, more depth for complex ones.
+- Write maths in plain text (x^2, 3/4, sqrt(9)); never use LaTeX like $x^2$, because the page can't draw it.
 - Use Markdown (lists, headings, tables) only when it genuinely helps. Plain paragraphs are the default for conversation.
 - Be honest. If you are unsure, say so. Never invent facts, quotes, sources or links. If you make a mistake, own it and fix it.
 - Be warm and respectful, never condescending. Disagree politely when you have good reason to.
@@ -79,11 +82,16 @@ Safety:
 Memory:
 - You may suggest remembering ONE durable, useful fact about the user (a goal, project, or preference) by ending your reply with <memory>short fact</memory>. Do this rarely, only when it would clearly help later, and never for health, money, passwords, addresses or private details about other people. The user will be asked to approve it first.`;
 
-  if (mode === 'study') {
-    s += `\n\nStudy mode: act as a patient tutor. For homework and problems, give hints and guiding questions first and let the student try; check their understanding; give the full worked solution only if they ask or are clearly stuck. Use simple examples and explain the why, not just the answer.`;
-  } else if (mode === 'code') {
-    s += `\n\nCode mode: act as an expert programming assistant. Give working, minimal, well-commented code, explain it briefly, and point out gotchas, edge cases and security issues.`;
-  }
+  const MODE_TEXT = {
+    study: "Study mode: act as a patient tutor. Give hints and guiding questions first and let the student try; check their understanding; give the full explanation when they ask or are clearly stuck. Use simple examples and explain the why, not just the answer.",
+    code: "Code mode: act as an expert programming assistant. Give working, minimal, well-commented code, explain it briefly, and point out gotchas, edge cases and security issues.",
+    homework: "Homework helper mode: help the student learn, not just copy. Start with a hint or the first step and a question, then build up. Give a full worked answer only if they ask for it or are stuck after trying.",
+    quiz: "Quiz mode: quiz the student. If they have not said the subject and topic, ask for it. Then ask ONE question at a time, wait for their answer, say whether it is right, explain briefly, and keep a running score. Adjust the difficulty to how they are doing.",
+    maths: "Maths mode: solve step by step. Number each step, say what you did and why, then check the final answer. Write maths in plain text (for example x^2, 3/4, sqrt(9)), not LaTeX.",
+    essay: "Essay feedback mode: give honest, kind, specific feedback. Cover what works, then the biggest improvements (argument, structure, evidence, clarity, grammar), pointing at exact sentences. Do not rewrite the whole essay unless asked.",
+    simple: "Explain-simply mode: explain in short, plain sentences with one everyday analogy and one example. Avoid jargon, or explain it when you must use it. End with a quick check that it made sense.",
+  };
+  if (MODE_TEXT[mode]) s += `\n\n${MODE_TEXT[mode]}`;
 
   if (name) s += `\n\nThe user's name is ${name}.`;
   if (memory.length) {
@@ -99,7 +107,7 @@ module.exports = async (req, res) => {
 
   // GET → tells the browser which models it may use
   if (req.method === 'GET') {
-    return res.status(200).json({ models: MODELS, modes: MODES });
+    return res.status(200).json({ models: MODEL_LIST });
   }
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
@@ -127,7 +135,7 @@ module.exports = async (req, res) => {
   if (!Object.prototype.hasOwnProperty.call(MODELS, model)) {
     return res.status(400).json({ error: 'Unknown model.' });
   }
-  const mode = MODES.includes(body.mode) ? body.mode : 'chat';
+  const mode = MODES.includes(body.mode) ? body.mode : '';
 
   if (!Array.isArray(body.messages) || body.messages.length < 1 || body.messages.length > LIMITS.maxMessages) {
     return res.status(400).json({ error: 'Bad request.' });
