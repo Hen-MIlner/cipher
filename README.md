@@ -1,6 +1,6 @@
 # Cipher
 
-A study and coding assistant that runs in the browser. Chat, Study and Code modes, streaming replies, Markdown and code blocks with copy buttons, click-to-run HTML previews, memory you approve, a focus timer, and notes export.
+A study and coding assistant that runs in the browser. School modes (homework, quiz, maths, essay, explain simply), Study and Code modes, streaming replies, Markdown and code blocks with copy buttons, click-to-run HTML previews, memory you approve, chat history, a focus timer, and notes export.
 
 Built by Henry. Powered by DeepSeek. Hosted on Vercel.
 
