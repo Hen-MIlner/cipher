@@ -23,6 +23,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Ccircle cx='22' cy='22' r='15' fill='none' stroke='%233d7bff' stroke-width='7' stroke-dasharray='70 24' transform='rotate(38 22 22)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
 <style>
 :root{--bg:#060b16;--side:#080f1f;--panel:#0d1629;--line:#1a2744;--text:#e7edfb;--mute:#7b8bab;--blue:#3d7bff;--cyan:#22d3ee}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
@@ -208,6 +211,8 @@ a.nav{text-decoration:none}
 .sf-f{font-size:13px;color:var(--mute);margin-top:12px}
 #helpModal .ml{max-width:600px}
 @media(max-width:760px){.sf-g{grid-template-columns:1fr}}
+.bub .katex{font-size:1.08em}
+.bub .katex-display{margin:.7em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
 </style>
 </head>
 <body>
@@ -323,7 +328,7 @@ const MODE_NAME={study:'Study mode',code:'Code assistant',homework:'Homework hel
 let name=localStorage.getItem('cipher:name')||'',model=localStorage.getItem('cipher:model')||'',mode='',chats=[],cur=null,busy=false,attach='',ctrl=null,lastPreview='';
 let mem=(()=>{try{const a=JSON.parse(localStorage.getItem('cipher:memory')||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string').slice(0,20):[]}catch{return[]}})();
 const saveMem=()=>localStorage.setItem('cipher:memory',JSON.stringify(mem));
-const TV='2026-11-01b',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
+const TV='2026-11-02',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
 const key=()=>'cipher:chats'; // one shared history per browser, so changing your name never hides it
 async function api(p,body){
   const r=await fetch(p,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
@@ -339,11 +344,22 @@ function codeHtml(b){
   const web=l==='html'||/<!doctype html|<html[\s>]/i.test(b.code);
   return '<div class="code"><div class="ch"><span>'+esc(l)+'</span><span>'+(web?'<button class="js-prev">Preview</button>':'')+'<button class="js-copy">Copy</button></span></div><pre><code>'+esc(b.code)+'</code></pre></div>';
 }
+function mathHtml(x){
+  const t=x.t.replace(/\u0003/g,'\\$');
+  if(window.katex){try{return window.katex.renderToString(t,{displayMode:x.d,throwOnError:false,strict:'ignore',maxSize:20,maxExpand:1000})}catch(e){}}
+  return '<code>'+esc((x.d?'$$':'$')+t+(x.d?'$$':'$'))+'</code>';
+}
 function md(src){
-  const blocks=[],inl=[];
+  const blocks=[],inl=[],maths=[];
   src=String(src).replace(/```([\w+-]*)[^\n]*\n?([\s\S]*?)(?:```|$)/g,(m,lang,code)=>{blocks.push({lang,code:code.replace(/\n$/,'')});return '\n\u0000'+(blocks.length-1)+'\u0000\n'});
+  src=src.replace(/`([^`\n]+)`/g,(m,c)=>{inl.push(c);return '\u0001'+(inl.length-1)+'\u0001'});
+  src=src.replace(/\\\$/g,'\u0003');
+  const disp=(m,t)=>{maths.push({t:t.trim(),d:true});return '\n\u0002'+(maths.length-1)+'\u0002\n'};
+  const inline=t=>{maths.push({t:t.trim(),d:false});return '\u0002'+(maths.length-1)+'\u0002'};
+  src=src.replace(/\$\$([\s\S]+?)\$\$/g,disp).replace(/\\\[([\s\S]+?)\\\]/g,disp);
+  src=src.replace(/\\\(([\s\S]+?)\\\)/g,(m,t)=>inline(t));
+  src=src.replace(/(^|[^\\$\w])\$([^\s$](?:[^$\n]*?[^\s$])?)\$(?![\d$])/gm,(m,pre,t)=>pre+inline(t));
   let h=esc(src);
-  h=h.replace(/`([^`\n]+)`/g,(m,c)=>{inl.push(c);return '\u0001'+(inl.length-1)+'\u0001'});
   h=h.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   h=h.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
   h=h.replace(/(^|[^*\w])\*([^*\n]+)\*(?![*\w])/g,'$1<em>$2</em>');
@@ -366,15 +382,16 @@ function md(src){
     else{
       close();
       if(ln.trim()==='')continue;
-      if(/^<h\d/.test(ln)||/^\u0000\d+\u0000$/.test(ln.trim()))out+=ln.trim();
+      if(/^<h\d/.test(ln)||/^\u0000\d+\u0000$/.test(ln.trim())||(/^\u0002\d+\u0002$/.test(ln.trim())&&maths[+ln.trim().slice(1,-1)].d))out+=ln.trim();
       else if((m=ln.match(/^&gt;\s?(.*)/)))out+='<blockquote>'+m[1]+'</blockquote>';
       else out+='<p>'+ln+'</p>';
     }
   }
   close();
-  out=out.replace(/\u0001(\d+)\u0001/g,(m,i)=>'<code>'+inl[+i]+'</code>');
+  out=out.replace(/\u0001(\d+)\u0001/g,(m,i)=>'<code>'+esc(inl[+i])+'</code>');
+  out=out.replace(/\u0002(\d+)\u0002/g,(m,i)=>mathHtml(maths[+i]));
   out=out.replace(/\u0000(\d+)\u0000/g,(m,i)=>codeHtml(blocks[+i]));
-  return out;
+  return out.replace(/\u0003/g,'$');
 }
 // Pulls the model's <memory>…</memory> suggestions out of a reply (also hides half-typed tags while streaming).
 function splitMem(t){
@@ -567,6 +584,7 @@ let sx=0,sy=0;
 document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5)return;const sd=$('#side');if(dx>0&&sx<28)sd.classList.add('open');else if(dx<0)sd.classList.remove('open')},{passive:true});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+window.addEventListener('load',()=>{if(window.katex&&cur&&!busy)render()}); // draw formulas once the maths library has loaded
 if(name&&agreed())start();else{$('#nm').value=name;$('#ok').checked=agreed();$('#wbtn').disabled=!$('#ok').checked;$('#welcome').classList.remove('hidden');$('#nm').focus()}
 </script>
 </body>
