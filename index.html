@@ -191,6 +191,23 @@ button{-webkit-user-select:none;user-select:none}
 .ph button:hover{background:#ffffff0d;color:var(--text)}
 #frame{flex:1;border:0;background:#fff;width:100%}
 @media(max-width:760px){#pvp{width:100%}}
+.disc{max-width:760px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--mute);line-height:1.4}
+.lnk{background:none;border:0;color:#6ea2ff;font-size:12px;text-decoration:underline;padding:0 0 0 4px}
+a.nav{text-decoration:none}
+.sf{margin-top:14px;border:1px solid #1f4aa8;background:#0b1d44;border-radius:18px;padding:18px}
+.sf-t{font-size:clamp(20px,3.6vw,26px);font-weight:700;line-height:1.25;margin:0 0 14px;color:var(--text)}
+.sf-g{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.sf-c{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:inherit}
+.sf-c:hover{border-color:var(--blue)}
+.sf-c.em{border-color:#ff6b7a;background:#2a0f18}
+.sf-n{font-size:15px;font-weight:600;color:var(--text)}
+.sf-num{font-size:clamp(28px,6.4vw,38px);font-weight:700;line-height:1.15;color:var(--cyan);margin:2px 0 4px;overflow-wrap:anywhere}
+.sf-num.sm{font-size:19px}
+.sf-c.em .sf-num{color:#ff8a98}
+.sf-d{font-size:13px;color:var(--mute);line-height:1.45}
+.sf-f{font-size:13px;color:var(--mute);margin-top:12px}
+#helpModal .ml{max-width:600px}
+@media(max-width:760px){.sf-g{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -226,6 +243,10 @@ button{-webkit-user-select:none;user-select:none}
     <button class="nav" data-mode="code">&lt;/&gt; Code assistant</button>
     <button class="nav" id="memBtn">🧠 Memory</button>
     <button class="nav" id="timer">⏱ Focus timer · 25:00</button>
+    <div class="hd">Safety</div>
+    <button class="nav" id="helpBtn">🆘 Get help now</button>
+    <a class="nav" id="reportBtn" href="mailto:henryjmilne23@outlook.com?subject=Cipher%20report&body=Tell%20us%20what%20happened.%20Please%20do%20not%20include%20personal%20details.">⚑ Report a problem</a>
+    <button class="nav" id="delChats">🗑 Delete my chats</button>
     <div class="fine" style="font-size:12px;padding:6px 12px;color:var(--mute)"><a href="/terms.html" style="color:inherit">Terms</a> · <a href="/privacy.html" style="color:inherit">Privacy</a></div>
     <div class="me"><div class="av" id="av"></div><div><b id="who"></b><button id="chg">Change name</button></div></div>
   </aside>
@@ -259,6 +280,7 @@ button{-webkit-user-select:none;user-select:none}
         <textarea id="in" rows="1" maxlength="8000" placeholder="Message Cipher…"></textarea>
         <button id="send" aria-label="Send"></button>
       </div>
+      <div class="disc">Cipher is AI and can make mistakes. Please double-check responses. <button class="lnk" id="helpLink">Need help?</button></div>
     </div>
   </main>
 </div>
@@ -273,6 +295,13 @@ button{-webkit-user-select:none;user-select:none}
   <p>Things Cipher remembers about you. Cipher always asks before saving one. They are kept only in this browser, and they are sent to DeepSeek along with your messages so Cipher can use them.</p>
   <div id="memList"></div>
   <div class="two"><button class="sec" id="memClear">Delete all</button><button class="go" id="memDone">Done</button></div>
+</div></div>
+
+<div class="ov hidden" id="helpModal"><div class="card ml" role="dialog" aria-labelledby="ht">
+  <h2 id="ht">Get help now</h2>
+  <p>Free, confidential support in Australia. Cipher is an AI. It can't call anyone or send help for you, so please contact a person.</p>
+  <div id="helpBody"></div>
+  <div class="two"><button class="go" id="helpDone">Close</button></div>
 </div></div>
 
 <script>
@@ -294,7 +323,7 @@ const MODE_NAME={study:'Study mode',code:'Code assistant',homework:'Homework hel
 let name=localStorage.getItem('cipher:name')||'',model=localStorage.getItem('cipher:model')||'',mode='',chats=[],cur=null,busy=false,attach='',ctrl=null,lastPreview='';
 let mem=(()=>{try{const a=JSON.parse(localStorage.getItem('cipher:memory')||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string').slice(0,20):[]}catch{return[]}})();
 const saveMem=()=>localStorage.setItem('cipher:memory',JSON.stringify(mem));
-const TV='2026-11-01',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
+const TV='2026-11-01b',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
 const key=()=>'cipher:chats'; // one shared history per browser, so changing your name never hides it
 async function api(p,body){
   const r=await fetch(p,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
@@ -356,6 +385,33 @@ function splitMem(t){
 }
 /*MD-END*/
 
+// Helpline details, checked against each service's official information.
+const RES={
+ '000':{n:'Triple Zero (Emergency)',num:'000',tel:'000',em:1,d:'Police, fire or ambulance. Call if you or someone else is in danger. From a mobile you can also dial 112.'},
+ lifeline:{n:'Lifeline',num:'13 11 14',tel:'131114',d:'24/7 crisis support. You can also text 0477 13 11 14.'},
+ kids:{n:'Kids Helpline',num:'1800 55 1800',tel:'1800551800',d:'Free, private counselling for ages 5 to 25, 24/7. Phone or webchat at kidshelpline.com.au.'},
+ beyond:{n:'Beyond Blue',num:'1300 22 4636',tel:'1300224636',d:'24/7 mental health support.'},
+ yarn:{n:'13YARN',num:'13 92 76',tel:'139276',d:'24/7 crisis support for Aboriginal and Torres Strait Islander people.'},
+ respect:{n:'1800RESPECT',num:'1800 737 732',tel:'1800737732',d:'24/7 support for sexual assault, domestic and family violence and abuse.'},
+ butterfly:{n:'Butterfly Foundation',num:'1800 33 4673',tel:'1800334673',d:'Eating disorder and body image support, 8am to midnight (AEST/AEDT), 7 days. Closed on national public holidays.'},
+ poisons:{n:'Poisons Information Centre',num:'13 11 26',tel:'131126',d:'24/7 advice if someone has swallowed or been exposed to something harmful. Call 000 if they are unwell.'},
+ crimestoppers:{n:'Crime Stoppers',num:'1800 333 000',tel:'1800333000',d:'Report crime anonymously.'},
+ esafety:{n:'eSafety Commissioner',num:'esafety.gov.au/report',href:'https://www.esafety.gov.au/report',d:'Report cyberbullying, harmful or illegal online content.'}
+};
+const HELP_ALL=['000','lifeline','kids','beyond','yarn','respect','butterfly','poisons','crimestoppers','esafety'];
+function safetyHtml(s){
+  const cards=(s.resources||[]).map(id=>RES[id]).filter(Boolean).map(r=>{
+    const inner=`<div class="sf-n">${esc(r.n)}</div><div class="sf-num${r.tel?'':' sm'}">${esc(r.num)}</div><div class="sf-d">${esc(r.d)}</div>`;
+    const cls='sf-c'+(r.em?' em':'');
+    return r.tel?`<a class="${cls}" href="tel:${r.tel}">${inner}</a>`:`<a class="${cls}" href="${r.href}" target="_blank" rel="noopener noreferrer">${inner}</a>`}).join('');
+  return `<div class="sf" role="alert"><div class="sf-t">${esc(s.title||'')}</div>${cards?`<div class="sf-g">${cards}</div>`:''}<div class="sf-f">If you are outside Australia, call your local emergency number.</div></div>`}
+function applySafety(out,s){
+  out.content=s.message||'';out.safety={category:s.category,title:s.title,resources:s.resources||[]};out.mems=[];
+  if(s.exclude){out.blocked=true;const u=cur.m[cur.m.length-2];if(u&&u.role==='user')u.blocked=true}}
+function showHelp(){$('#helpBody').innerHTML=safetyHtml({title:'Free help, any time',resources:HELP_ALL});$('#helpModal').classList.remove('hidden');$('#side').classList.remove('open')}
+$('#helpBtn').onclick=showHelp;$('#helpLink').onclick=showHelp;$('#helpDone').onclick=()=>$('#helpModal').classList.add('hidden');
+$('#delChats').onclick=()=>{if(!confirm('Delete all your chats from this device? This cannot be undone.'))return;if(busy)stop();chats=[];save();newChat();$('#side').classList.remove('open')};
+
 function start(){
   $('#welcome').classList.add('hidden');$('#app').classList.remove('hidden');
   chats=JSON.parse(localStorage.getItem(key())||'[]');
@@ -387,16 +443,16 @@ function render(){
   let lastU=-1;cur.m.forEach((m,i)=>{if(m.role==='user')lastU=i});
   $('#msgs').innerHTML=cur.m.map((m,i)=>{
     if(m.role==='user')return `<div class="msg u"><div class="uc"><div class="bub">${esc(m.content)}</div>${i===lastU&&!busy&&i>=cur.m.length-2?'<button class="cp ed">Edit</button>':''}</div></div>`;
-    const acts=m.content&&!busy&&!m.err?`<button class="cp" data-i="${i}">Copy</button>`+(i===cur.m.length-1?'<button class="cp rg">Regenerate</button>':''):'';
+    const acts=m.content&&!busy&&!m.err&&!m.safety?`<button class="cp" data-i="${i}">Copy</button>`+(i===cur.m.length-1?'<button class="cp rg">Regenerate</button>':''):'';
     const mq=!busy?(m.mems||[]).map((q,k)=>q.s==='no'?'':`<div class="memq"><span>${q.s==='saved'?'Saved to memory: ':'Remember this? '}${esc(q.t)}</span>${q.s==='saved'?`<button data-i="${i}" data-k="${k}" data-a="undo">Undo</button>`:`<button class="y" data-i="${i}" data-k="${k}" data-a="save">Save</button><button data-i="${i}" data-k="${k}" data-a="no">No</button>`}</div>`).join(''):'';
-    return `<div class="msg a"><div class="ava">${LOGO(22)}</div><div class="col"><div class="bub">${m.content?md(m.content):DOTS}</div>${acts}${mq}</div></div>`}).join('');
+    return `<div class="msg a"><div class="ava">${LOGO(22)}</div><div class="col"><div class="bub">${m.content?md(m.content):DOTS}</div>${m.safety?safetyHtml(m.safety):''}${acts}${mq}</div></div>`}).join('');
   $('#hist').innerHTML=chats.map(c=>`<button class="nav" data-id="${c.id}">${esc(c.title)}</button>`).join('');
   $('#feed').scrollTop=1e9}
 
 function setBusy(b){busy=b;const s=$('#send');s.innerHTML=b?STOP:ARROW;s.setAttribute('aria-label',b?'Stop':'Send');s.disabled=false}
 function stop(){if(ctrl)ctrl.abort()}
 function history(){
-  let h=cur.m.slice(0,-1).filter(m=>!m.err&&m.content).map(m=>({role:m.role,content:m.content.slice(0,24000)}));
+  let h=cur.m.slice(0,-1).filter(m=>!m.err&&!m.blocked&&m.content).map(m=>({role:m.role,content:m.content.slice(0,24000)}));
   let total=h.reduce((a,m)=>a+m.content.length,0);
   while((h.length>40||total>55000)&&h.length>1)total-=h.shift().content.length;
   while(h.length&&h[0].role!=='user')h.shift();
@@ -414,15 +470,19 @@ function finish(out){
   out.mems=mems.slice(0,1).map(t=>({t:t.slice(0,200),s:mem.includes(t.slice(0,200))?'no':'pending'}))}
 async function run(){
   setBusy(true);ctrl=new AbortController();
-  const out=cur.m[cur.m.length-1];let raw='';
+  const out=cur.m[cur.m.length-1];let raw='',sf=null;
   try{
     const r=await fetch('/api/chat',{method:'POST',signal:ctrl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,model,name,agreed:agreed(),memory:mem,messages:history()})});
     if(!r.ok){const t=await r.text();let m;try{m=JSON.parse(t).error}catch{m="Can't reach the Cipher API. Make sure api/chat.js is in your GitHub repo (inside an api folder), then redeploy on Vercel."}throw new Error(m)}
+    if((r.headers.get('content-type')||'').includes('application/json')){
+      const j=await r.json();
+      if(j&&j.safety){applySafety(out,j.safety);ctrl=null;setBusy(false);save();render();return}
+      throw new Error('Unexpected reply from the server.')}
     const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
     for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
-      for(const l of ls){if(!l.startsWith('data: ')||l.includes('[DONE]'))continue;try{raw+=JSON.parse(l.slice(6)).choices[0].delta.content||''}catch{}}
+      for(const l of ls){if(!l.startsWith('data: ')||l.includes('[DONE]'))continue;try{const j=JSON.parse(l.slice(6));if(j.cipher_safety){sf=j.cipher_safety;continue}raw+=j.choices[0].delta.content||''}catch{}}
       out.content=raw;const c=splitMem(raw).clean,el=$('#msgs').lastChild&&$('#msgs').lastChild.querySelector('.bub');if(el)el.innerHTML=c?md(c):DOTS;stick()}
-    finish(out)
+    if(sf)applySafety(out,sf);else finish(out)
   }catch(e){
     if(e.name==='AbortError'){if(raw)finish(out);else cur.m.pop()}
     else if(raw)finish(out);
@@ -458,7 +518,7 @@ $('#memClear').onclick=()=>{mem=[];saveMem();showMem()};
 function openPreview(code){lastPreview=code;$('#frame').srcdoc=code;$('#pvp').classList.remove('hidden')}
 $('#pvClose').onclick=()=>{$('#pvp').classList.add('hidden');$('#frame').srcdoc=''};
 $('#pvReload').onclick=()=>{$('#frame').srcdoc='';setTimeout(()=>{$('#frame').srcdoc=lastPreview},30)};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#memModal').classList.add('hidden');$('#pvp').classList.add('hidden');$('#frame').srcdoc=''}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#helpModal').classList.add('hidden');$('#memModal').classList.add('hidden');$('#pvp').classList.add('hidden');$('#frame').srcdoc=''}});
 
 function setPill(){const p=$('#pill');const mob=matchMedia('(max-width:760px)').matches;const t=[!mob&&mode&&MODE_NAME[mode]+' on',attach&&'File attached'].filter(Boolean);
   p.classList.toggle('hidden',!t.length);p.innerHTML='<span>'+t.join(' · ')+'<button id="x" aria-label="Clear">✕</button></span>';
@@ -490,7 +550,7 @@ $('#msgs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   if(b.classList.contains('ed'))return edit();
   if(b.dataset.a)return memAct(+b.dataset.i,+b.dataset.k,b.dataset.a);
   if(b.classList.contains('cp')&&b.dataset.i!=null)copyText(cur.m[b.dataset.i].content,b)};
-$('#notes').onclick=()=>{if(!cur.m.length)return;const t=cur.m.filter(m=>m.content&&!m.err).map(m=>(m.role==='user'?'## Question\n':'## Answer\n')+m.content).join('\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['# '+cur.title+'\n\n'+t],{type:'text/markdown'}));a.download=(cur.title.replace(/[^\w ]/g,'').trim()||'notes')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
+$('#notes').onclick=()=>{if(!cur.m.length)return;const t=cur.m.filter(m=>m.content&&!m.err&&!m.blocked).map(m=>(m.role==='user'?'## Question\n':'## Answer\n')+m.content).join('\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['# '+cur.title+'\n\n'+t],{type:'text/markdown'}));a.download=(cur.title.replace(/[^\w ]/g,'').trim()||'notes')+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
 let tEnd=0,tId=null;const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 $('#timer').onclick=()=>{if(tId){clearInterval(tId);tId=null;document.title='Cipher';$('#timer').textContent='⏱ Focus timer · 25:00';return}
   tEnd=Date.now()+1500000;tId=setInterval(()=>{const l=Math.max(0,Math.round((tEnd-Date.now())/1000));$('#timer').textContent='⏱ Focus · '+fmt(l)+' (tap to stop)';document.title=fmt(l)+' · Cipher';
