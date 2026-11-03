@@ -1,7 +1,7 @@
 // api/chat.js — Cipher chat endpoint (Vercel serverless function, CommonJS)
 // Needs the DEEPSEEK_API_KEY environment variable in Vercel (Project → Settings → Environment Variables).
 
-const { checkInput, checkOutput, SAFETY_PROMPT } = require('../lib/safety');
+const { checkInput, checkOutput, looksMarked, SAFETY_PROMPT } = require('../lib/safety');
 
 const UPSTREAM = 'https://api.deepseek.com/chat/completions'; // fixed address: the key can never be sent anywhere else
 
@@ -56,7 +56,7 @@ function tooMany(ip) {
 const clean = (s, max) =>
   String(s || '').replace(/[\u0000-\u001f\u007f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 
-function buildSystem({ name, mode, memory }) {
+function buildSystem({ name, mode, memory, marked }) {
   const today = new Date().toLocaleDateString('en-AU', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Australia/Adelaide',
   });
@@ -94,6 +94,9 @@ Memory:
     simple: "Explain-simply mode: explain in short, plain sentences with one everyday analogy and one example. Avoid jargon, or explain it when you must use it. End with a quick check that it made sense.",
   };
   s += `\n\n${SAFETY_PROMPT}`;
+  if (marked) {
+    s += `\n\nThe student has mentioned a marked task, assignment, assessment or exam. Do not write a complete, ready-to-submit answer, essay, solution set or program for it. Give hints, explain the ideas, work through a different example, or give feedback on their own attempt. Remind them briefly to follow their teacher's and school's rules on AI and to acknowledge any AI help. If they only want to study or practise, help normally.`;
+  }
   if (MODE_TEXT[mode]) s += `\n\n${MODE_TEXT[mode]}`;
 
   if (name) s += `\n\nThe user's name is ${name}.`;
@@ -194,7 +197,7 @@ module.exports = async (req, res) => {
       model,
       stream: true,
       max_tokens: LIMITS.maxOutputTokens[model],
-      messages: [{ role: 'system', content: buildSystem({ name, mode, memory }) }, ...messages],
+      messages: [{ role: 'system', content: buildSystem({ name, mode, memory, marked: looksMarked(messages[messages.length - 1].content) }) }, ...messages],
     };
     if (model === 'deepseek-chat') payload.temperature = 0.7;
 

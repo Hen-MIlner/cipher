@@ -25,4 +25,5 @@ Built by Henry. Powered by DeepSeek. Hosted on Vercel.
 - Memory is saved only after you press Save, and you can view or delete it any time.
 - Security headers (including a Content Security Policy) are set in `vercel.json`.
 - A safety layer (`lib/safety.js`) checks each message before it reaches DeepSeek and checks replies as they stream. For self-harm, abuse, eating disorders and poisoning it shows support information (Triple Zero 000, Lifeline, Kids Helpline and others) in big writing instead of a normal reply, and it refuses sexual content, serious violence, hacking and harassment. It is a simple rule-based filter, so it is not perfect.
+- Built to respect school AI and academic integrity rules: Cipher gives hints and feedback instead of finished answers for marked tasks, refuses to help during an exam, and has an "AI use & citing" guide with a copyable acknowledgement and reference. The Terms tell students to follow their school's rules.
 - A "Get help now" button, a "Report a problem" button and a "Delete my chats" button are in the sidebar.

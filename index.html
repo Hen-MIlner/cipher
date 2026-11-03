@@ -10,9 +10,9 @@
 <meta property="og:site_name" content="Cipher">
 <meta property="og:title" content="Cipher – Ask anything. Get clear answers.">
 <meta property="og:description" content="Cipher is a free AI chat app for students: homework hints, quizzes, maths steps and clear explanations.">
-<meta property="og:url" content="https://YOUR-SITE.vercel.app/">
-<meta property="og:image" content="https://YOUR-SITE.vercel.app/og-image.png">
-<meta name="twitter:card" content="summary_large_image">
+<meta property="og:url" content="https://cipher-virid-nine.vercel.app/">
+<meta property="og:image" content="https://cipher-virid-nine.vercel.app/icon-512.png">
+<meta name="twitter:card" content="summary">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -211,6 +211,12 @@ a.nav{text-decoration:none}
 .sf-f{font-size:13px;color:var(--mute);margin-top:12px}
 #helpModal .ml{max-width:600px}
 @media(max-width:760px){.sf-g{grid-template-columns:1fr}}
+#aiModal .ml{max-width:600px}
+.ai-l{margin:0 0 14px;padding-left:1.2em;text-align:left;color:var(--mute);font-size:14px}
+.ai-l li{margin:6px 0}
+#aiModal h3{font-size:15px;font-weight:600;margin:16px 0 4px;text-align:left}
+.tpl{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:6px 0 8px;font-size:14px;line-height:1.5;white-space:pre-wrap;text-align:left;user-select:text;-webkit-user-select:text}
+.cpb{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:13px}
 .bub .katex{font-size:1.08em}
 .bub .katex-display{margin:.7em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
 </style>
@@ -226,8 +232,9 @@ a.nav{text-decoration:none}
   <div class="agree"><b>Adult supervision and project responsibility</b>
     <p>Cipher is an independently developed software project created by a young developer with adult supervision and support.</p>
     <p>An adult supervisor assists with account administration, hosting, security and other operational responsibilities where appropriate. This arrangement does not remove any responsibilities that apply to the project or its operators under applicable law.</p>
-    <p>Users should use Cipher responsibly and should not rely on its outputs as a substitute for professional advice where appropriate.</p></div>
-  <label class="tick"><input type="checkbox" id="ok"><span>I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the notice above. I am 14 or older, and if I am under 18 I have a parent or guardian's permission.</span></label>
+    <p>Users should use Cipher responsibly and should not rely on its outputs as a substitute for professional advice where appropriate.</p>
+    <p>Cipher is not approved or run by any school. Follow your school's rules on AI and academic integrity, ask your teacher before using Cipher for schoolwork, never hand in AI-generated work as your own without permission and acknowledgement, and never use Cipher in an exam or supervised test.</p></div>
+  <label class="tick"><input type="checkbox" id="ok"><span>I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, including the notices above, and I will follow my school's rules on AI use. I am 14 or older, and if I am under 18 I have a parent or guardian's permission.</span></label>
   <button class="go" id="wbtn" disabled>Start chatting</button>
 </form></div>
 
@@ -248,6 +255,8 @@ a.nav{text-decoration:none}
     <button class="nav" data-mode="code">&lt;/&gt; Code assistant</button>
     <button class="nav" id="memBtn">🧠 Memory</button>
     <button class="nav" id="timer">⏱ Focus timer · 25:00</button>
+    <div class="hd">At school</div>
+    <button class="nav" id="aiBtn">📋 AI use &amp; citing</button>
     <div class="hd">Safety</div>
     <button class="nav" id="helpBtn">🆘 Get help now</button>
     <a class="nav" id="reportBtn" href="mailto:henryjmilne23@outlook.com?subject=Cipher%20report&body=Tell%20us%20what%20happened.%20Please%20do%20not%20include%20personal%20details.">⚑ Report a problem</a>
@@ -285,7 +294,7 @@ a.nav{text-decoration:none}
         <textarea id="in" rows="1" maxlength="8000" placeholder="Message Cipher…"></textarea>
         <button id="send" aria-label="Send"></button>
       </div>
-      <div class="disc">Cipher is AI and can make mistakes. Please double-check responses. <button class="lnk" id="helpLink">Need help?</button></div>
+      <div class="disc">Cipher is AI and can make mistakes. Please double-check responses. <button class="lnk" id="helpLink">Need help?</button> <button class="lnk" id="aiLink">School rules</button></div>
     </div>
   </main>
 </div>
@@ -309,6 +318,23 @@ a.nav{text-decoration:none}
   <div class="two"><button class="go" id="helpDone">Close</button></div>
 </div></div>
 
+<div class="ov hidden" id="aiModal"><div class="card ml" role="dialog" aria-labelledby="at">
+  <h2 id="at">Using Cipher at school</h2>
+  <p>Cipher is not approved or run by any school. Your school and your teacher decide whether and how you can use AI.</p>
+  <ul class="ai-l">
+    <li>Ask your teacher before using Cipher for homework or assessment tasks.</li>
+    <li>Never hand in Cipher's words, answers or ideas as your own work without permission and a proper acknowledgement.</li>
+    <li>Assessments, including SACE tasks, can restrict or ban AI. Follow the instructions for each task, and never use Cipher in an exam or supervised test.</li>
+    <li>Keep your notes and drafts so you can show how you did the work, and be ready to explain it.</li>
+    <li>Check your school's technology rules before using Cipher on school devices or networks.</li>
+  </ul>
+  <h3>If your teacher allows AI, say how you used it</h3>
+  <div class="tpl" id="aiDecl"></div><button class="cpb" data-copy="aiDecl">Copy</button>
+  <h3>Reference (use the style your teacher asks for, such as APA or Harvard)</h3>
+  <div class="tpl" id="aiRef"></div><button class="cpb" data-copy="aiRef">Copy</button>
+  <div class="two"><button class="go" id="aiDone">Close</button></div>
+</div></div>
+
 <script>
 const $=s=>document.querySelector(s);
 const LOGO=n=>`<svg width="${n}" height="${n}" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="15" fill="none" stroke="url(#cg)" stroke-width="7" stroke-dasharray="70 24" transform="rotate(38 22 22)"/></svg>`;
@@ -328,7 +354,7 @@ const MODE_NAME={study:'Study mode',code:'Code assistant',homework:'Homework hel
 let name=localStorage.getItem('cipher:name')||'',model=localStorage.getItem('cipher:model')||'',mode='',chats=[],cur=null,busy=false,attach='',ctrl=null,lastPreview='';
 let mem=(()=>{try{const a=JSON.parse(localStorage.getItem('cipher:memory')||'[]');return Array.isArray(a)?a.filter(x=>typeof x==='string').slice(0,20):[]}catch{return[]}})();
 const saveMem=()=>localStorage.setItem('cipher:memory',JSON.stringify(mem));
-const TV='2026-11-02',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
+const TV='2026-11-02b',agreed=()=>localStorage.getItem('cipher:agreed')===TV;
 const key=()=>'cipher:chats'; // one shared history per browser, so changing your name never hides it
 async function api(p,body){
   const r=await fetch(p,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{});
@@ -427,6 +453,12 @@ function applySafety(out,s){
   if(s.exclude){out.blocked=true;const u=cur.m[cur.m.length-2];if(u&&u.role==='user')u.blocked=true}}
 function showHelp(){$('#helpBody').innerHTML=safetyHtml({title:'Free help, any time',resources:HELP_ALL});$('#helpModal').classList.remove('hidden');$('#side').classList.remove('open')}
 $('#helpBtn').onclick=showHelp;$('#helpLink').onclick=showHelp;$('#helpDone').onclick=()=>$('#helpModal').classList.add('hidden');
+function showAI(){
+  $('#aiDecl').textContent='I used Cipher, an AI study helper powered by DeepSeek, on [date] to [say what you used it for, for example get hints, check my working or get feedback on my draft]. I checked the information, made my own edits, and the final work is my own.';
+  $('#aiRef').textContent='Cipher. ('+new Date().getFullYear()+'). Cipher: AI study helper [Large language model powered by DeepSeek]. '+location.origin+'/';
+  $('#aiModal').classList.remove('hidden');$('#side').classList.remove('open')}
+$('#aiBtn').onclick=showAI;$('#aiLink').onclick=showAI;$('#aiDone').onclick=()=>$('#aiModal').classList.add('hidden');
+document.querySelectorAll('#aiModal [data-copy]').forEach(b=>b.onclick=()=>copyText($('#'+b.dataset.copy).textContent,b));
 $('#delChats').onclick=()=>{if(!confirm('Delete all your chats from this device? This cannot be undone.'))return;if(busy)stop();chats=[];save();newChat();$('#side').classList.remove('open')};
 
 function start(){
@@ -535,7 +567,7 @@ $('#memClear').onclick=()=>{mem=[];saveMem();showMem()};
 function openPreview(code){lastPreview=code;$('#frame').srcdoc=code;$('#pvp').classList.remove('hidden')}
 $('#pvClose').onclick=()=>{$('#pvp').classList.add('hidden');$('#frame').srcdoc=''};
 $('#pvReload').onclick=()=>{$('#frame').srcdoc='';setTimeout(()=>{$('#frame').srcdoc=lastPreview},30)};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#helpModal').classList.add('hidden');$('#memModal').classList.add('hidden');$('#pvp').classList.add('hidden');$('#frame').srcdoc=''}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#aiModal').classList.add('hidden');$('#helpModal').classList.add('hidden');$('#memModal').classList.add('hidden');$('#pvp').classList.add('hidden');$('#frame').srcdoc=''}});
 
 function setPill(){const p=$('#pill');const mob=matchMedia('(max-width:760px)').matches;const t=[!mob&&mode&&MODE_NAME[mode]+' on',attach&&'File attached'].filter(Boolean);
   p.classList.toggle('hidden',!t.length);p.innerHTML='<span>'+t.join(' · ')+'<button id="x" aria-label="Clear">✕</button></span>';
