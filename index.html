@@ -219,6 +219,8 @@ a.nav{text-decoration:none}
 .cpb{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:13px}
 .bub .katex{font-size:1.08em}
 .bub .katex-display{margin:.7em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.mfb{font-style:normal}
+.mfbd{margin:.5em 0;text-align:center;font-size:1.1em;overflow-x:auto}
 </style>
 </head>
 <body>
@@ -370,10 +372,46 @@ function codeHtml(b){
   const web=l==='html'||/<!doctype html|<html[\s>]/i.test(b.code);
   return '<div class="code"><div class="ch"><span>'+esc(l)+'</span><span>'+(web?'<button class="js-prev">Preview</button>':'')+'<button class="js-copy">Copy</button></span></div><pre><code>'+esc(b.code)+'</code></pre></div>';
 }
+// Fallback: turns LaTeX into tidy readable text (x², a/b, ±, √) when the maths library isn't available.
+const LTX_MAP={pm:'±',mp:'∓',times:'×',cdot:'·',div:'÷',le:'≤',leq:'≤',ge:'≥',geq:'≥',ne:'≠',neq:'≠',approx:'≈',infty:'∞',pi:'π',theta:'θ',alpha:'α',beta:'β',gamma:'γ',delta:'δ',Delta:'Δ',sigma:'σ',Sigma:'Σ',mu:'μ',lambda:'λ',omega:'ω',Omega:'Ω',phi:'φ',rho:'ρ',epsilon:'ε',to:'→',rightarrow:'→',leftarrow:'←',Rightarrow:'⇒',implies:'⇒',Leftrightarrow:'⇔',circ:'°',degree:'°',ldots:'…',dots:'…',cdots:'…',int:'∫',sum:'Σ',prod:'∏',in:'∈',cup:'∪',cap:'∩',subset:'⊂',angle:'∠',triangle:'△',perp:'⊥',parallel:'∥',therefore:'∴',because:'∵',quad:' ',qquad:'  ',',':' ',';':' ',':':' ','!':'','%':'%','&':'&','$':'$','{':'{','}':'}','\\':' ',' ':' ',lbrace:'{',rbrace:'}',sin:'sin',cos:'cos',tan:'tan',log:'log',ln:'ln',lim:'lim',max:'max',min:'min'};
+const SUPC={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','−':'⁻','=':'⁼','(':'⁽',')':'⁾',n:'ⁿ',i:'ⁱ'};
+const SUBC={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','+':'₊','−':'₋','=':'₌','(':'₍',')':'₎'};
+function ltxArg(s,i){
+  while(s[i]===' ')i++;
+  if(s[i]==='{'){let d=0,j=i;for(;j<s.length;j++){if(s[j]==='{')d++;else if(s[j]==='}'){d--;if(d===0)break}}return[s.slice(i+1,j),j+1]}
+  if(s[i]==='\\'){const m=/^\\[a-zA-Z]+/.exec(s.slice(i));if(m)return[m[0],i+m[0].length]}
+  return[s[i]||'',i+1];
+}
+function ltxScript(a,up){
+  const map=up?SUPC:SUBC,t=a.replace(/-/g,'−');
+  if(t&&[...t].every(c=>map[c]!==undefined))return[...t].map(c=>map[c]).join('');
+  return(up?'^':'_')+(t.length<=1?t:'('+t+')');
+}
+function ltx(s){
+  let out='',i=0;
+  const simple=a=>/^[\w.²³¹⁰⁴-⁹\u0370-\u03ff]+$/.test(a);
+  while(i<s.length){
+    const c=s[i];
+    if(c==='\\'){
+      const m=/^\\([a-zA-Z]+|.)/.exec(s.slice(i));if(!m){i++;continue}const cmd=m[1];i+=m[0].length;
+      if(cmd==='frac'||cmd==='dfrac'||cmd==='tfrac'){let a,b;[a,i]=ltxArg(s,i);[b,i]=ltxArg(s,i);const A=ltx(a),B=ltx(b);out+=(simple(A)?A:'('+A+')')+'/'+(simple(B)?B:'('+B+')');continue}
+      if(cmd==='sqrt'){let n='';if(s[i]==='['){const j=s.indexOf(']',i);n=s.slice(i+1,j);i=j+1}let a;[a,i]=ltxArg(s,i);const A=ltx(a);out+=(n&&n!=='2'?ltxScript(n,true):'')+'√'+(simple(A)?A:'('+A+')');continue}
+      if(/^(text|mathrm|mathbf|textbf|mathit|operatorname|boldsymbol|mathbb|vec|overline|hat|bar)$/.test(cmd)){let a;[a,i]=ltxArg(s,i);out+=ltx(a);continue}
+      if(cmd==='left'||cmd==='right'){const d=s[i]||'';i++;if(d!=='.')out+=d==='\\'?(s[i++]==='{'?'{':'}'):d;continue}
+      if(Object.prototype.hasOwnProperty.call(LTX_MAP,cmd)){out+=LTX_MAP[cmd];continue}
+      out+=cmd;continue;
+    }
+    if(c==='^'||c==='_'){i++;let a;[a,i]=ltxArg(s,i);if(a==='\\circ'||a==='\\degree'){out+='°';continue}out+=ltxScript(ltx(a),c==='^');continue}
+    if(c==='{'||c==='}'){i++;continue}
+    out+=c==='-'?'−':c;i++;
+  }
+  return out.replace(/\s+/g,' ').replace(/\(\s+/g,'(').replace(/\s+\)/g,')').trim();
+}
 function mathHtml(x){
   const t=x.t.replace(/\u0003/g,'\\$');
   if(window.katex){try{return window.katex.renderToString(t,{displayMode:x.d,throwOnError:false,strict:'ignore',maxSize:20,maxExpand:1000})}catch(e){}}
-  return '<code>'+esc((x.d?'$$':'$')+t+(x.d?'$$':'$'))+'</code>';
+  const pt=esc(ltx(t));
+  return x.d?'<div class="mfbd">'+pt+'</div>':'<span class="mfb">'+pt+'</span>';
 }
 function md(src){
   const blocks=[],inl=[],maths=[];
@@ -425,6 +463,18 @@ function splitMem(t){
   let clean=String(t).replace(/<memory>([\s\S]*?)<\/memory>/g,(m,x)=>{if(x.trim())mems.push(x.trim());return ''});
   clean=clean.replace(/<memory>[\s\S]*$/,'').replace(/<\/?m(?:e(?:m(?:o(?:r(?:y)?)?)?)?)?$/,'');
   return{clean:clean.trim(),mems};
+}
+// The student's own message: x^2 becomes x², sqrt( becomes √(, and $...$ formulas are typeset. Display only; what is sent is unchanged.
+function userHtml(s){
+  if(s.length>600||/```|--- attached file ---/.test(s))return esc(s);
+  const maths=[];
+  s=s.replace(/(^|[^\\$\w])\$([^\s$](?:[^$\n]*?[^\s$])?)\$(?![\d$])/g,(m,pre,t)=>{maths.push(t);return pre+'\u0002'+(maths.length-1)+'\u0002'});
+  let h=esc(s);
+  if(/[0-9]/.test(s)&&/[=^]|sqrt\(/i.test(s)){
+    h=h.replace(/([A-Za-z0-9)\]])\^\{?(-?[0-9]+|[nxyi])\}?/g,(m,b,e)=>b+ltxScript(e,true));
+    h=h.replace(/\bsqrt\(/gi,'√(').replace(/&lt;=/g,'≤').replace(/&gt;=/g,'≥').replace(/!=/g,'≠').replace(/(\s)-(\s)/g,'$1−$2');
+  }
+  return h.replace(/\u0002(\d+)\u0002/g,(m,i)=>mathHtml({t:maths[+i],d:false}));
 }
 /*MD-END*/
 
@@ -491,7 +541,7 @@ function render(){
   $('#hero').classList.toggle('hidden',cur.m.length>0);
   let lastU=-1;cur.m.forEach((m,i)=>{if(m.role==='user')lastU=i});
   $('#msgs').innerHTML=cur.m.map((m,i)=>{
-    if(m.role==='user')return `<div class="msg u"><div class="uc"><div class="bub">${esc(m.content)}</div>${i===lastU&&!busy&&i>=cur.m.length-2?'<button class="cp ed">Edit</button>':''}</div></div>`;
+    if(m.role==='user')return `<div class="msg u"><div class="uc"><div class="bub">${userHtml(m.content)}</div>${i===lastU&&!busy&&i>=cur.m.length-2?'<button class="cp ed">Edit</button>':''}</div></div>`;
     const acts=m.content&&!busy&&!m.err&&!m.safety?`<button class="cp" data-i="${i}">Copy</button>`+(i===cur.m.length-1?'<button class="cp rg">Regenerate</button>':''):'';
     const mq=!busy?(m.mems||[]).map((q,k)=>q.s==='no'?'':`<div class="memq"><span>${q.s==='saved'?'Saved to memory: ':'Remember this? '}${esc(q.t)}</span>${q.s==='saved'?`<button data-i="${i}" data-k="${k}" data-a="undo">Undo</button>`:`<button class="y" data-i="${i}" data-k="${k}" data-a="save">Save</button><button data-i="${i}" data-k="${k}" data-a="no">No</button>`}</div>`).join(''):'';
     return `<div class="msg a"><div class="ava">${LOGO(22)}</div><div class="col"><div class="bub">${m.content?md(m.content):DOTS}</div>${m.safety?safetyHtml(m.safety):''}${acts}${mq}</div></div>`}).join('');
