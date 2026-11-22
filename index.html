@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
 <style>
-:root{--bg:#060b16;--side:#080f1f;--panel:#0d1629;--line:#1a2744;--text:#e7edfb;--mute:#7b8bab;--blue:#3d7bff;--cyan:#22d3ee}
+:root{--bg:#07070d;--side:#0b0b14;--panel:#12121d;--line:#232336;--text:#ececf6;--mute:#8a8aa6;--blue:#8b7bff;--cyan:#5eead4;--grad:linear-gradient(135deg,#8b7bff,#5eead4);--btn:linear-gradient(135deg,#8b7bff,#6a5cf0);--sel:#1a1830;--code:#0a0a12;--ic:#1b1a30}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--text);font:15px/1.6 Sora,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
@@ -221,10 +221,49 @@ a.nav{text-decoration:none}
 .bub .katex-display{margin:.7em 0;overflow-x:auto;overflow-y:hidden;padding:2px 0}
 .mfb{font-style:normal}
 .mfbd{margin:.5em 0;text-align:center;font-size:1.1em;overflow-x:auto}
+
+/* ===== Cipher v2 look: Aurora ===== */
+@media(prefers-color-scheme:light){:root{--bg:#f7f7fb;--side:#ffffff;--panel:#ffffff;--line:#e3e3ee;--text:#16162a;--mute:#6b6b88;--blue:#6a5cf0;--cyan:#0d9488;--sel:#efecff;--code:#f1f1f8;--ic:#ecebff}.u .bub,#newChat,#send,.go{color:#fff}.chip,.box{box-shadow:0 4px 18px #1b1b4010!important}}
+main{background:radial-gradient(55% 40% at 50% -5%,#8b7bff26,transparent),radial-gradient(40% 30% at 85% 0%,#5eead418,transparent)!important}
+aside{background:var(--side)}
+.logo svg{filter:drop-shadow(0 0 10px #8b7bff80)}
+.nav.on{background:var(--sel);box-shadow:inset 3px 0 0 var(--blue)}
+.nav:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}
+#newChat,#send,.go{background:var(--btn);box-shadow:0 8px 24px #8b7bff40;color:#fff}
+.av{background:var(--grad);color:#0b0b14}
+#hero{padding-top:9vh}
+#hi{font-size:clamp(28px,5vw,42px);font-weight:600;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:22px 0 8px}
+#hero p{font-size:16px;margin-bottom:34px}
+#hero .word{font-size:20px}
+#chips{grid-template-columns:repeat(2,1fr);gap:14px}
+.chip{border-radius:18px;padding:18px 20px;background:var(--panel);position:relative;overflow:hidden}
+.chip::before{content:"";position:absolute;inset:0;background:var(--grad);opacity:0;transition:opacity .2s}
+.chip:hover{transform:translateY(-3px);border-color:var(--blue);box-shadow:0 14px 34px #8b7bff22}
+.chip:hover::before{opacity:.07}
+.chip b,.chip span{position:relative}
+.chip b{font-size:15px}
+.msg{margin:26px 0}
+.u .bub{background:var(--btn);border-radius:20px 20px 6px 20px;color:#fff;box-shadow:0 6px 20px #8b7bff2e}
+.ava{border-radius:50%;background:var(--grad);border:0;color:#0b0b14}
+.a .bub{line-height:1.7}
+pre{background:var(--code);border-radius:14px}
+.bub>code,p code{background:var(--ic)}
+.dots i{background:var(--blue)}
+.box{border-radius:26px;background:var(--panel);box-shadow:0 14px 44px #0006;backdrop-filter:blur(14px)}
+.box:focus-within{border-color:var(--blue);box-shadow:0 14px 44px #0006,0 0 0 4px #8b7bff26}
+#model,#notes,#menu{border-radius:999px;background-color:var(--panel)}
+#pill span{background:var(--sel);border-color:var(--blue);color:var(--text)}#pill button{color:var(--text)}
+.mchip{background:var(--panel)}.mchip.on{background:var(--sel);border-color:var(--blue);color:var(--text)}
+.card{border-radius:28px}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:760px){#chips{grid-template-columns:1fr 1fr;gap:10px}.chip{padding:14px}#hero{padding-top:4vh}}
+#kbd{color:var(--mute);font-size:12px;text-align:center;margin:10px 0 0}#kbd kbd{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font:inherit}
+@media(max-width:760px),(pointer:coarse){#kbd{display:none}}
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#3d5bff"/></linearGradient></defs></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#8b7bff"/></linearGradient></defs></svg>
 
 <div id="welcome" class="hidden"><form class="card" id="wf">
   <div class="logo"><span class="m big"></span><span class="word">CIPHER</span></div>
@@ -275,6 +314,7 @@ a.nav{text-decoration:none}
         <h1 id="hi">Hi there</h1>
         <p>Ask anything. Get clear answers.</p>
         <div id="chips"></div>
+        <p id="kbd"><kbd>/</kbd> to type · <kbd>Ctrl</kbd>+<kbd>K</kbd> new chat · <kbd>Esc</kbd> stop</p>
       </div>
       <div id="msgs"></div>
     </div></div>
@@ -517,7 +557,7 @@ function start(){
   Object.keys(localStorage).filter(k=>k.startsWith('cipher:chats:')).forEach(k=>{try{JSON.parse(localStorage.getItem(k)).forEach(c=>{if(!chats.some(x=>x.id===c.id))chats.push(c)})}catch{}localStorage.removeItem(k)});
   chats.sort((a,b)=>b.id-a.id);save();
   $('#who').textContent=name;$('#av').textContent=name[0].toUpperCase();
-  $('#hi').textContent=`Hi ${name}, what's on your mind?`;
+  {const h=new Date().getHours();$('#hi').textContent=`${h<5?'Late night':h<12?'Good morning':h<18?'Good afternoon':'Good evening'}, ${name}`}
   $('#chips').innerHTML=SUG.map((s,i)=>`<button class="chip" data-i="${i}"><b>${s[0]}</b><span>${s[1]}</span></button>`).join('');
   setBusy(false);loadModels();newChat()}
 $('#ok').onchange=()=>{$('#wbtn').disabled=!$('#ok').checked};
@@ -668,6 +708,15 @@ document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 window.addEventListener('load',()=>{if(window.katex&&cur&&!busy)render()}); // draw formulas once the maths library has loaded
 if(name&&agreed())start();else{$('#nm').value=name;$('#ok').checked=agreed();$('#wbtn').disabled=!$('#ok').checked;$('#welcome').classList.remove('hidden');$('#nm').focus()}
+</script>
+<script>
+/* Cipher v2 shortcuts */
+document.addEventListener('keydown',e=>{
+  const t=e.target,typing=t&&(t.tagName==='TEXTAREA'||t.tagName==='INPUT'||t.tagName==='SELECT');
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();const b=document.getElementById('newChat');if(b)b.click();const i=document.getElementById('in');if(i)i.focus();return}
+  if(e.key==='Escape'&&typeof stop==='function'){stop();return}
+  if(e.key==='/'&&!typing&&!document.getElementById('app').classList.contains('hidden')){e.preventDefault();const i=document.getElementById('in');if(i)i.focus()}
+});
 </script>
 </body>
 </html>
